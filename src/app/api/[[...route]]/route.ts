@@ -1,4 +1,4 @@
-import { discoveryHandler } from "@trustify/core/handlers/discovery-handler";
+import { discoveryHandler } from "@trustify/core/handlers/discovery";
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
 
