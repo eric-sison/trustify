@@ -9,13 +9,13 @@ export const userRolesEnum = pgEnum("user_roles_enum", USER_ROLES);
 
 export const users = pgTable("users", {
   id: char("user_id", { length: ID_LENGTH }).primaryKey().default(generateId(ID_LENGTH)),
-  role: userRolesEnum("user_role").default("client").notNull(),
+  role: userRolesEnum("role").default("client").notNull(),
   email: varchar("email").unique().notNull(),
   password: varchar("password").notNull(),
   givenName: varchar("given_name").notNull(),
   middleName: varchar("middle_name").notNull(),
   familyName: varchar("last_name").notNull(),
-  nickName: varchar("nick_name"),
+  nickname: varchar("nickname"),
   preferredUsername: varchar("preferred_username"),
   profile: varchar("profile"),
   picture: varchar("picture"),
