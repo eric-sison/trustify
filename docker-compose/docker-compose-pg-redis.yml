@@ -4,7 +4,7 @@
 services:
   pg:
     image: postgres:15-alpine
-    container_name: trustify-pg
+    container_name: tpg # change this to trustify-pg in production to make it more human readable
     restart: always
     ports:
       - "5432:5432"
@@ -17,7 +17,7 @@ services:
 
   redis:
     image: redis:alpine3.20
-    container_name: trustify-redis
+    container_name: trd # change this to trustify-redis in production to make it more human readable
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
