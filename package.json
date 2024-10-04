@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "studio": "drizzle-kit studio",
+    "migration:generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "migration:amend": "drizzle-kit drop && drizzle-kit generate",
+    "migration:drop": "drizzle-kit drop"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.3.0",
