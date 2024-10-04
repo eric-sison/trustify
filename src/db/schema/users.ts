@@ -26,6 +26,7 @@ export const users = pgTable("users", {
   birthdate: date("birthdate", {
     mode: "date",
   }),
+  locale: varchar("locale"),
   zoneinfo: varchar("zoneinfo"),
   phoneNumber: varchar("phone_number"),
   phoneNumberVerified: boolean("phone_number_verified").default(false).notNull(),
