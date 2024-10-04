@@ -1,0 +1,29 @@
+# you can run this docker compose file using:
+# docker-compose up -f docker-compose-pg-redis.yml
+
+services:
+  pg:
+    image: postgres:15-alpine
+    container_name: trustify-pg
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=trustify
+      - POSTGRES_PASSWORD=postgres_password
+      - POSTGRES_DB=trustify
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine3.20
+    container_name: trustify-redis
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    command: /bin/sh -c "redis-server --requirepass redis_password"
+    ports:
+      - "6379:6379"
