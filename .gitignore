@@ -16,6 +16,9 @@
 # environments
 .env
 
+# migrations
+/src/db/migrations
+
 # production
 /build
 

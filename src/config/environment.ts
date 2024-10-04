@@ -1,4 +1,4 @@
-import { EnvSchema } from "@trustify/types/env.schema";
+import { EnvSchema } from "@trustify/types/env-schema";
 import { validateEnv } from "@trustify/utils/validate-env";
 
 const env = {
