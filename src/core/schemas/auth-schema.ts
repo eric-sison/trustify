@@ -11,9 +11,10 @@ export const LoginRequestSchema = z.object({
   code_challenge: z.string().optional(),
   code_challenge_method: z.enum(["S256", "plain"]).optional(),
   scope: z
-    .enum(oidcDiscovery.scopes_supported, {
-      message: "Invalid scope",
-    })
+    .string()
+    // .enum(oidcDiscovery.scopes_supported, {
+    //   message: "Invalid scope",
+    // })
     .refine((val) => val.includes("openid"), {
       message: "Missing required scope: openid",
     }),

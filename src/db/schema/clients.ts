@@ -1,7 +1,13 @@
+import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { ID_LENGTH } from "@trustify/utils/constants";
 import { sql } from "drizzle-orm";
-import { pgTable, char, varchar, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, char, varchar, text, boolean, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { generateId } from "lucia";
+
+export const tokenEndpointAuthMethodEnum = pgEnum(
+  "token_endpoint_auth_method_enum",
+  oidcDiscovery.token_endpoint_auth_methods_supported,
+);
 
 export const clients = pgTable("clients", {
   id: char("client_id", { length: ID_LENGTH }).primaryKey().default(generateId(ID_LENGTH)),
@@ -11,10 +17,8 @@ export const clients = pgTable("clients", {
   clientUrl: varchar("client_url").notNull(),
   secret: varchar("secret").unique().notNull(),
   isActive: boolean("is_active").default(true).notNull(),
-  tokenEndpointAuthMethod: varchar("token_endpoint_auth_method")
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`)
+  tokenEndpointAuthMethod: tokenEndpointAuthMethodEnum("token_endpoint_auth_method")
+    .default("client_secret_basic")
     .notNull(),
   grantTypes: varchar("grant_types")
     .array()
