@@ -1,5 +1,6 @@
 import { Redis } from "ioredis";
 import { appConfig } from "./environment";
+import { logger } from "./pino-logger";
 
 export const redisStore = new Redis(appConfig.redisPort, appConfig.redisHost, {
   password: appConfig.redisPassword,
@@ -8,5 +9,4 @@ export const redisStore = new Redis(appConfig.redisPort, appConfig.redisHost, {
   retryStrategy: (times) => Math.min(times * 50, 500),
 });
 
-// TODO: add production logger
-redisStore.on("error", (err) => console.error(err));
+redisStore.on("error", (err) => logger.error(err));

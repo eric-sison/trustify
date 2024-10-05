@@ -5,6 +5,7 @@ import { OidcError } from "@trustify/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";
+import { logger } from "@trustify/config/pino-logger";
 import { z } from "zod";
 
 type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
@@ -78,12 +79,13 @@ export class AuthorizationService {
 
       // Log a warning if redirect URI does not use HTTPS
       if (parsedUri.protocol !== "https") {
-        // TODO: logger - implement production logger
-        console.warn(`Warning: Redirect URI is not encrypted! - ${parsedUri.origin}`);
+        logger.warn(`Redirect URI (${parsedUri.origin}) is not encrypted!`);
       }
 
       // If the URL constructor throws an error, the URI is malformed
     } catch (error) {
+      logger.error(error);
+
       throw error;
     }
   }
@@ -100,6 +102,8 @@ export class AuthorizationService {
 
     // Throw an error if the response type is invalid or not allowed
     if (!isValidResponseType || !isAllowedForClient) {
+      logger.error("Either response_type is not valid, or response_type is not allowed for client.");
+
       throw new OidcError({
         error: "invalid_response_type",
         message: "The supplied response_type is not valid.",
@@ -124,8 +128,7 @@ export class AuthorizationService {
 
         // Throw an error if something went wrong in trying to store the state in the redis
       } catch (error) {
-        // TODO: logger - implement production logger
-        console.error(error);
+        logger.error(error);
 
         // Throw error if storing state to redis has failed
         throw new OidcError({
