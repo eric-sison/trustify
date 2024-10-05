@@ -1,4 +1,4 @@
-import { UserAddressSchema } from "@trustify/types/user-schema";
+import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { ID_LENGTH, USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
 import { char, pgTable, varchar, boolean, pgEnum, timestamp, jsonb, date } from "drizzle-orm/pg-core";
 import { generateId } from "lucia";
