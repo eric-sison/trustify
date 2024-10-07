@@ -8,10 +8,14 @@ import { testHander } from "@trustify/core/handlers/test";
 import { pinoLogger } from "@trustify/core/middlewares/pino-logger";
 import { PinoLogger } from "hono-pino";
 import { authenticationHandler } from "@trustify/core/handlers/authentication";
+import { DatabaseUserAttributes } from "@trustify/config/lucia";
+import { Session } from "lucia";
 
 export type HonoAppBindings = {
   Variables: {
     logger: PinoLogger;
+    user: DatabaseUserAttributes;
+    session: Session;
   };
 };
 

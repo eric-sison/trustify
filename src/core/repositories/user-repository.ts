@@ -1,18 +1,18 @@
 import { db } from "@trustify/config/postgres";
-import { clients } from "@trustify/db/schema/clients";
+import { users } from "@trustify/db/schema/users";
 import { OidcError } from "@trustify/types/oidc-error";
 import { sql, eq } from "drizzle-orm";
 
-export class ClientRepository {
-  public async getClientById(clientId: string) {
+export class UserRepository {
+  async getUserByEmail(email: string) {
     try {
       const ps = db
         .select()
-        .from(clients)
-        .where(eq(clients.id, sql.placeholder("clientId")))
-        .prepare("get_client_by_id");
+        .from(users)
+        .where(eq(users.email, sql.placeholder("email")))
+        .prepare("get_user_by_email");
 
-      const result = await ps.execute({ clientId });
+      const result = await ps.execute({ email });
 
       return result[0];
     } catch (error) {

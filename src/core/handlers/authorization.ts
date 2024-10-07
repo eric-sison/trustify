@@ -19,20 +19,8 @@ export const authorizationHandler = new Hono<HonoAppBindings>().get(
     // Get the client details from the database
     const client = await authorizationService.getClientFromAuthorizationURL();
 
-    // Check if scopes are valid
-    authorizationService.verifyScopes(client.scopes);
-
-    // Check if redirect_uri is valid
-    authorizationService.verifyRedirectUris(client.redirectUris);
-
-    // Check if response_type is registered, and if it is supported by Trustify
-    authorizationService.verifyResponseType(client.responseTypes);
-
-    // Check if code_challenge_method is valid if code_challenge is provided
-    authorizationService.verifyCodeChallengeMethod();
-
     // Generate a random string and associate it to the original state from request URL
-    const opaqueState = await authorizationService.saveStateAsOpaque();
+    const opaqueState = await authorizationService.verifyAuthorizationRequest(client);
 
     // Generate the login URL
     const loginUrl = encodeUrl({

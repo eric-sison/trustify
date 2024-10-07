@@ -1,4 +1,4 @@
-import { Button } from "@trustify/components/ui/Button";
+import { Button } from "@trustify/components/ui/button";
 
 export default function Home() {
   return (

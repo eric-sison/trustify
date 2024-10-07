@@ -8,8 +8,10 @@ import { generateIdFromEntropySize } from "lucia";
 import { z } from "zod";
 import { Context } from "hono";
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
+import { clients } from "@trustify/db/schema/clients";
 
 type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
+type OidcResponseType = (typeof oidcDiscovery.response_types_supported)[number];
 
 export class AuthorizationService {
   // Construct the AuthorizationService class by requiring the loginRequest retrieved from the URL
@@ -17,6 +19,25 @@ export class AuthorizationService {
     private readonly loginRequest: z.infer<typeof LoginRequestSchema>,
     private readonly context: Context<HonoAppBindings>,
   ) {}
+
+  public async verifyAuthorizationRequest(client: typeof clients.$inferInsert) {
+    // Check if scopes are valid
+    this.verifyScopes(client.scopes!);
+
+    // Check if redirect_uri is valid
+    this.verifyRedirectUris(client.redirectUris!);
+
+    // Check if response_type is registered, and if it is supported by Trustify
+    this.verifyResponseType(client.responseTypes!);
+
+    // Check if code_challenge_method is valid if code_challenge is provided
+    this.verifyCodeChallengeMethod();
+
+    // Generate a random string and associate it to the original state from request URL
+    const opaqueState = await this.saveStateAsOpaque();
+
+    return opaqueState;
+  }
 
   public async getClientFromAuthorizationURL() {
     // Initialize clientRepository to interact with the database
@@ -38,7 +59,7 @@ export class AuthorizationService {
     return client;
   }
 
-  public verifyScopes(clientScopes: string[]) {
+  private verifyScopes(clientScopes: string[]) {
     // Ensure loginRequest.scope is a string and split it into an array
     const scopes = this.loginRequest?.scope?.split(" ") || [];
 
@@ -62,7 +83,7 @@ export class AuthorizationService {
     }
   }
 
-  public verifyRedirectUris(registeredUris: string[]) {
+  private verifyRedirectUris(registeredUris: string[]) {
     try {
       // Parse the URI to ensure it is well-formed
       const parsedUri = new URL(this.loginRequest.redirect_uri);
@@ -96,12 +117,12 @@ export class AuthorizationService {
     }
   }
 
-  public verifyResponseType(allowedResponseTypes: string[]) {
+  private verifyResponseType(allowedResponseTypes: string[]) {
     // The list of response types supported by the OIDC server.
     const supportedTypes = oidcDiscovery.response_types_supported;
 
     // Check if the response type is supported by the server
-    const isValidResponseType = supportedTypes.includes(this.loginRequest.response_type);
+    const isValidResponseType = supportedTypes.includes(this.loginRequest.response_type as OidcResponseType);
 
     // Check if the client is allowed to use the specified response type
     const isAllowedForClient = allowedResponseTypes.includes(this.loginRequest.response_type);
@@ -116,7 +137,7 @@ export class AuthorizationService {
     }
   }
 
-  public verifyCodeChallengeMethod() {
+  private verifyCodeChallengeMethod() {
     // If code_challenge is provided, ensure code_challenge_method is also provided
     if (this.loginRequest.code_challenge && !this.loginRequest.code_challenge_method) {
       throw new OidcError({
@@ -127,7 +148,7 @@ export class AuthorizationService {
     }
   }
 
-  public async saveStateAsOpaque() {
+  private async saveStateAsOpaque() {
     // Only execute this function if state is not undefined
     if (this.loginRequest.state) {
       try {

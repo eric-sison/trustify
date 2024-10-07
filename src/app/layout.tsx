@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} h-screen w-screen bg-neutral-50 antialiased`}>
+      <body className={`${inter.className} h-screen w-screen bg-neutral-50 antialiased`}>
         <QueryClientProvider>{children}</QueryClientProvider>
       </body>
     </html>
