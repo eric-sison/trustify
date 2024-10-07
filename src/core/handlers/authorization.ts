@@ -4,8 +4,9 @@ import { encodeUrl } from "@trustify/utils/encode-url";
 import { appConfig } from "@trustify/config/environment";
 import { AuthorizationService } from "@trustify/core/services/authorization-service";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
+import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 
-export const authorizationHandler = new Hono().get(
+export const authorizationHandler = new Hono<HonoAppBindings>().get(
   "/",
   zValidator("query", LoginRequestSchema),
   async (c) => {
@@ -13,7 +14,7 @@ export const authorizationHandler = new Hono().get(
     const loginRequest = c.req.valid("query");
 
     // Initialize the authorization service
-    const authorizationService = new AuthorizationService(loginRequest);
+    const authorizationService = new AuthorizationService(loginRequest, c);
 
     // Get the client details from the database
     const client = await authorizationService.getClientFromAuthorizationURL();

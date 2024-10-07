@@ -1,4 +1,3 @@
-import { logger } from "@trustify/config/pino-logger";
 import { db } from "@trustify/config/postgres";
 import { clients } from "@trustify/db/schema/clients";
 import { OidcError } from "@trustify/types/oidc-error";
@@ -19,8 +18,6 @@ export class ClientRepository {
 
       return result[0];
     } catch (error) {
-      logger.error(error);
-
       throw new OidcError({
         error: "failed_query",
         message: "Failed to execute query.",

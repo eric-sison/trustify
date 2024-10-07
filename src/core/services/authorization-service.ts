@@ -5,14 +5,18 @@ import { OidcError } from "@trustify/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";
-import { logger } from "@trustify/config/pino-logger";
 import { z } from "zod";
+import { Context } from "hono";
+import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 
 type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
 
 export class AuthorizationService {
   // Construct the AuthorizationService class by requiring the loginRequest retrieved from the URL
-  constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
+  constructor(
+    private readonly loginRequest: z.infer<typeof LoginRequestSchema>,
+    private readonly context: Context<HonoAppBindings>,
+  ) {}
 
   public async getClientFromAuthorizationURL() {
     // Initialize clientRepository to interact with the database
@@ -77,12 +81,12 @@ export class AuthorizationService {
 
       // Log a warning if redirect URI does not use HTTPS
       if (parsedUri.protocol !== "https") {
-        logger.warn(`Redirect URI (${parsedUri.origin}) is not encrypted!`);
+        this.context.var.logger.warn(`Redirect URI (${parsedUri.origin}) is not encrypted!`);
       }
 
       // If the URL constructor throws an error, the URI is malformed
     } catch (error) {
-      logger.error(error);
+      this.context.var.logger.error(error);
 
       throw new OidcError({
         error: "invalid_redirect_uri",
@@ -139,7 +143,8 @@ export class AuthorizationService {
 
         // Throw an error if something went wrong in trying to store the state in the redis
       } catch (error) {
-        logger.error(error);
+        // log the error
+        this.context.var.logger.error(error);
 
         // Throw error if storing state to redis has failed
         throw new OidcError({
