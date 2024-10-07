@@ -23,8 +23,11 @@ export class ClientRepository {
 
       throw new OidcError({
         error: "failed_query",
-        message: "Failed to get client by Id",
+        message: "Failed to execute query.",
         status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
       });
     }
   }
