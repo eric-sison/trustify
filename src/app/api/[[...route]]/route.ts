@@ -7,6 +7,7 @@ import { onError } from "@trustify/core/middlewares/on-error";
 import { testHander } from "@trustify/core/handlers/test";
 import { pinoLogger } from "@trustify/core/middlewares/pino-logger";
 import { PinoLogger } from "hono-pino";
+import { authenticationHandler } from "@trustify/core/handlers/authentication";
 
 export type HonoAppBindings = {
   Variables: {
@@ -26,6 +27,7 @@ app.onError(onError);
 const routes = app
   .route("/v1/.well-known/openid-configuration", discoveryHandler)
   .route("/v1/authorization", authorizationHandler)
+  .route("/v1/oidc", authenticationHandler)
   .route("/v1/test", testHander);
 
 export const GET = handle(app);

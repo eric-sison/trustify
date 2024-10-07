@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "../assets/styles/tailwind.css";
+import { QueryClientProvider } from "@trustify/components/providers/query-client-provider";
 
 const inter = localFont({
   src: "../assets/fonts/Inter-VariableFont_opsz,wght.ttf",
@@ -20,7 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} h-screen w-screen bg-neutral-50 antialiased`}>{children}</body>
+      <body className={`${inter.variable} h-screen w-screen bg-neutral-50 antialiased`}>
+        <QueryClientProvider>{children}</QueryClientProvider>
+      </body>
     </html>
   );
 }
