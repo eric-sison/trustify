@@ -15,6 +15,6 @@
     "ui": "@trustify/components/ui",
     "utils": "@trustify/utils/shadcn",
     "lib": "@trustify/core/libs",
-    "hooks": "@trustify/core/hooks"
+    "hooks": "@trustify/components/hooks"
   }
 }
