@@ -10,8 +10,6 @@ import { z } from "zod";
 
 type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
 
-type OidcResponseTypes = (typeof oidcDiscovery.response_types_supported)[number];
-
 export class AuthorizationService {
   // Construct the AuthorizationService class by requiring the loginRequest retrieved from the URL
   constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
@@ -60,13 +58,13 @@ export class AuthorizationService {
     }
   }
 
-  public verifyRedirectUris(redirectUri: string, registeredUris: string[]) {
+  public verifyRedirectUris(registeredUris: string[]) {
     try {
       // Parse the URI to ensure it is well-formed
-      const parsedUri = new URL(redirectUri);
+      const parsedUri = new URL(this.loginRequest.redirect_uri);
 
       // Check if the redirect URI exactly matches any of the registered URIs
-      const isRegisteredUri = registeredUris.includes(redirectUri);
+      const isRegisteredUri = registeredUris.includes(this.loginRequest.redirect_uri);
 
       // Throw an OIDC Error if redirect_uri is not registered
       if (!isRegisteredUri) {
@@ -86,27 +84,40 @@ export class AuthorizationService {
     } catch (error) {
       logger.error(error);
 
-      throw error;
+      throw new OidcError({
+        error: "invalid_redirect_uri",
+        message: "The supplied redirect_uri is not valid.",
+        status: 400,
+      });
     }
   }
 
-  public verifyResponseType(responseType: string, allowedResponseTypes: string[]) {
+  public verifyResponseType(allowedResponseTypes: string[]) {
     // The list of response types supported by the OIDC server.
     const supportedTypes = oidcDiscovery.response_types_supported;
 
     // Check if the response type is supported by the server
-    const isValidResponseType = supportedTypes.includes(responseType as OidcResponseTypes);
+    const isValidResponseType = supportedTypes.includes(this.loginRequest.response_type);
 
     // Check if the client is allowed to use the specified response type
-    const isAllowedForClient = allowedResponseTypes.includes(responseType);
+    const isAllowedForClient = allowedResponseTypes.includes(this.loginRequest.response_type);
 
     // Throw an error if the response type is invalid or not allowed
     if (!isValidResponseType || !isAllowedForClient) {
-      logger.error("Either response_type is not valid, or response_type is not allowed for client.");
-
       throw new OidcError({
         error: "invalid_response_type",
         message: "The supplied response_type is not valid.",
+        status: 400,
+      });
+    }
+  }
+
+  public verifyCodeChallengeMethod() {
+    // If code_challenge is provided, ensure code_challenge_method is also provided
+    if (this.loginRequest.code_challenge && !this.loginRequest.code_challenge_method) {
+      throw new OidcError({
+        error: "invalid_request",
+        message: "When code_challenge is provided, code_challenge_method is also required",
         status: 400,
       });
     }
