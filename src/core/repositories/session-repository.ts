@@ -1,0 +1,46 @@
+import { db } from "@trustify/config/postgres";
+import { clients } from "@trustify/db/schema/clients";
+import { sessions } from "@trustify/db/schema/sessions";
+import { users } from "@trustify/db/schema/users";
+import { OidcError } from "@trustify/core/types/oidc-error";
+import { eq } from "drizzle-orm";
+import { Session } from "lucia";
+
+export class SessionRepository {
+  public async getSessionDetails(sid: Session) {
+    try {
+      const ps = db
+        .select({
+          client: clients.name,
+          description: clients.description,
+          logo: clients.logo,
+          termsOfUseUrl: clients.termsOfUseUrl,
+          privacyPolicyUrl: clients.privacyPolicyUrl,
+          email: users.email,
+          givenName: users.givenName,
+          middleName: users.middleName,
+          familyName: users.familyName,
+          preferredUsername: users.preferredUsername,
+          picture: users.picture,
+        })
+        .from(sessions)
+        .innerJoin(users, eq(sessions.userId, users.id))
+        .innerJoin(clients, eq(sessions.clientId, clients.id))
+        .where(eq(sessions.id, sid.id))
+        .prepare("get_session_details");
+
+      const res = await ps.execute();
+
+      return res[0];
+    } catch (error) {
+      throw new OidcError({
+        error: "failed_query",
+        message: "Failed to execute query.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+}

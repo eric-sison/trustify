@@ -1,57 +1,46 @@
 import { z } from "zod";
 import { LoginFormSchema } from "../schemas/auth-schema";
 import { UserRepository } from "../repositories/user-repository";
-import { OidcError } from "@trustify/types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { verifyHash } from "@trustify/utils/hash-fns";
-import { UserClientRepository } from "../repositories/user-client-repository";
 import { lucia } from "@trustify/config/lucia";
 import { Context } from "hono";
 import { setCookie } from "hono/cookie";
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { users } from "@trustify/db/schema/users";
+import { generateIdFromEntropySize, Session } from "lucia";
+import { SessionRepository } from "../repositories/session-repository";
+import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
+import { redisStore } from "@trustify/config/redis";
+import { AuthCodePayload } from "../types/auth-code-payload";
 
 export class AuthenticationService {
-  constructor(
-    private readonly credentials: z.infer<typeof LoginFormSchema>,
-    private readonly context: Context<HonoAppBindings>,
-  ) {}
+  constructor(private readonly context: Context<HonoAppBindings>) {}
 
-  public async authenticateUser(user: typeof users.$inferSelect, clientId: string) {
-    // Check if the user belongs to a client
-    const tenant = await this.belongsToClient(user.id, clientId);
+  public async authenticateUser(user: typeof users.$inferSelect) {
+    // Create a session object
+    const session = await lucia.createSession(user.id, {
+      clientId: this.context.req.query("client_id")!,
+      userAgent: this.context.req.raw.headers.get("User-Agent"),
+      signedInAt: new Date(),
+    });
 
-    // Perform additional checks (i.e. is_email_verified, is_suspended)
-    await this.verifyUser(tenant);
-
-    // Get the current timestamp as the signin date
-    const signInDate = new Date();
-
-    const session = await lucia.createSession(user.id, {});
-
+    // Create session cookie and assign its ID from the session object
     const sessionCookie = lucia.createSessionCookie(session.id);
 
+    // Set the sessionCookie in the browser, passing in values from sessionCookie
     setCookie(this.context, sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
-
-    await tenant.userClientRepository.updateSignInDetails(
-      session.id,
-      tenant.userClient.userId,
-      tenant.userClient.clientId,
-      signInDate,
-      this.context.req.header("User-Agent"),
-    );
-
-    return tenant.userClient;
   }
 
-  public async getUserFromCredentials() {
+  public async getUser(credentials: z.infer<typeof LoginFormSchema>) {
     // Initialize userRepository to interact with the database
     const userRepository = new UserRepository();
 
     // Get the user by email address
-    const user = await userRepository.getUserByEmail(this.credentials.email);
+    const user = await userRepository.getUserByEmail(credentials.email);
 
     // check if password is valid
-    const isPasswordValid = await verifyHash(user.password, this.credentials.password);
+    const isPasswordValid = await verifyHash(user.password, credentials.password);
 
     // Throw an error if user was not found
     if (!user || !isPasswordValid) {
@@ -62,36 +51,86 @@ export class AuthenticationService {
       });
     }
 
+    // Check if user email is verified
+    this.checkIfEmailIsVerified(user.emailVerified);
+
+    // Check if user account is suspended
+    this.checkIfUserIsSuspended(user.suspended);
+
     // If all checks passed, return the user
     return user;
   }
 
-  private async belongsToClient(userId: string, clientId: string) {
-    // Initialize userClientRepository to interact with the database
-    const userClientRepository = new UserClientRepository();
+  public async getAuthenticationDetails(session: Session) {
+    // Initialize sessionRepository to interact with the database
+    const sessionRepository = new SessionRepository();
 
-    // Get the userClient to check if userId is registered under a clientId
-    const userClient = await userClientRepository.getUserClientByIds(userId, clientId);
+    // Get the sessionDetails from session object
+    const sessionDetails = await sessionRepository.getSessionDetails(session);
 
-    // Throw an error if userClient is undefined
-    if (!userClient) {
+    // Throw an error if session is not found in the database
+    if (!sessionDetails) {
       throw new OidcError({
-        error: "unregistered_user",
-        message: "User is not registered under this client",
-        status: 403,
+        error: "invalid_session",
+        message: "Your session is invalid.",
+        status: 401,
       });
     }
 
-    // Otherwise, return the userClient
-    return { userClient, userClientRepository };
+    // Return the sesion details
+    return sessionDetails;
   }
 
-  private async verifyUser(user: Awaited<ReturnType<typeof this.belongsToClient>>) {
-    // check if registered user's email is verified
-    this.checkIfEmailIsVerified(user.userClient.emailVerified);
+  public async getStateFromStore(key: string | undefined) {
+    if (key) {
+      try {
+        // Get the state from the store using the opaqueState as key
+        const state = await redisStore.get(key);
 
-    // check if registered user's account is suspended
-    this.checkIfUserIsSuspended(user.userClient.suspended);
+        // After acquiring the state from store, delete it
+        await redisStore.del(key);
+
+        // Return state - if undefined, return a pre-defined string
+        return state ?? "invalid-or-expired";
+
+        // Handle redis erro
+      } catch (error) {
+        // log the error
+        this.context.var.logger.error(error);
+
+        // Throw error if storing state to redis has failed
+        throw new OidcError({
+          error: "redis_get_failed",
+          message: "Failed to get value to redis store.",
+          status: 500,
+        });
+      }
+    }
+  }
+
+  public async generateAuthorizationCode(payload: AuthCodePayload) {
+    try {
+      // Generate authorization code
+      const authorizationCode = `auc_${generateIdFromEntropySize(AUTH_CODE_LENGTH)}`;
+
+      // Attempt to store it in redis
+      await redisStore.set(authorizationCode, JSON.stringify(payload), "EX", 60 * 5);
+
+      // Return the generated authorization code
+      return authorizationCode;
+
+      // Handle redis error
+    } catch (error) {
+      // log the error
+      this.context.var.logger.error(error);
+
+      // Throw error if storing state to redis has failed
+      throw new OidcError({
+        error: "redis_set_failed",
+        message: "Failed to set value to redis store.",
+        status: 500,
+      });
+    }
   }
 
   private checkIfEmailIsVerified(isEmailVerified: boolean) {

@@ -14,16 +14,37 @@ export const lucia = new Lucia(adapter, {
       secure: process.env.NODE_ENV === "production",
     },
   },
-
-  getUserAttributes: (attributes) => ({ ...attributes }),
+  getSessionAttributes: (attributes) => {
+    return {
+      userAgent: attributes.userAgent,
+      signedInAt: attributes.signedInAt,
+      clientId: attributes.clientId,
+    };
+  },
+  getUserAttributes: (attributes) => {
+    return {
+      email: attributes.email,
+      givenName: attributes.givenName,
+      middleName: attributes.middleName,
+      familyName: attributes.familyName,
+      picture: attributes.picture,
+      role: attributes.role,
+    };
+  },
 });
 
 declare module "lucia" {
   interface Register {
     Lucia: typeof lucia;
+    DatabaseSessionAttributes: DatabaseSessionAttributes;
     DatabaseUserAttributes: DatabaseUserAttributes;
   }
 }
+
+export type DatabaseSessionAttributes = Pick<
+  typeof sessions.$inferSelect,
+  "userAgent" | "signedInAt" | "clientId"
+>;
 
 export type DatabaseUserAttributes = Pick<
   typeof users.$inferSelect,

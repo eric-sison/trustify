@@ -4,6 +4,8 @@ export const CLIENT_SECRET_LENGTH = 32;
 
 export const STATE_LENGTH = 16;
 
+export const AUTH_CODE_LENGTH = 64;
+
 export const USER_GENDER = ["Male", "Female"] as const;
 
 export const USER_ROLES = ["admin", "client"] as const;

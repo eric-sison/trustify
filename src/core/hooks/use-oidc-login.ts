@@ -4,11 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { useRouter } from "next/navigation";
 import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
 import { LoginFormSchema, LoginRequestSchema } from "../schemas/auth-schema";
-import { OidcError } from "@trustify/types/oidc-error";
-import { encodeUrl } from "@trustify/utils/encode-url";
-import { rpcClient } from "@trustify/utils/rpc-client";
+import { OidcError } from "@trustify/core/types/oidc-error";
+import { rpcClient } from "@trustify/core/libs/rpc-client";
+import { z } from "zod";
 
 export const useOIDCLogin = (
   form: UseFormReturn<z.infer<typeof LoginFormSchema>, unknown, undefined>,
@@ -46,22 +45,18 @@ export const useOIDCLogin = (
     },
 
     // handle the success event
-    onSuccess: () => {
-      //construct the consent url
-      const consentUrl = encodeUrl({
-        base: process.env.NEXT_PUBLIC_ADMIN_HOST!,
-        path: "/consent",
-        params: { ...loginRequest },
-      });
-
+    onSuccess: (data) => {
       //redirect to consent page
-      router.push(consentUrl);
+      router.push(data.consentUrl);
     },
 
     // handle the error event
     onError: () => {
       // reset the password field
       form.resetField("password");
+
+      // preserve focus on the password field
+      form.setFocus("password");
     },
   });
 

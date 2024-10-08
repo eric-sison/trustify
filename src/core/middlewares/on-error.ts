@@ -1,4 +1,4 @@
-import { OidcError } from "@trustify/types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { ErrorHandler } from "hono";
 import { StatusCode } from "hono/utils/http-status";
 
@@ -14,7 +14,7 @@ export const onError: ErrorHandler = (err, c) => {
         error: err.errorType,
         message: err.message,
         status: err.status,
-        stack: err.stack,
+        stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
       },
       err.status,
     );

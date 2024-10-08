@@ -1,7 +1,7 @@
 import { STATE_LENGTH } from "@trustify/utils/constants";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
-import { OidcError } from "@trustify/types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";

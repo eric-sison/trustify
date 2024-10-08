@@ -1,6 +1,6 @@
 import { db } from "@trustify/config/postgres";
 import { users } from "@trustify/db/schema/users";
-import { OidcError } from "@trustify/types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { sql, eq } from "drizzle-orm";
 
 export class UserRepository {
