@@ -1,4 +1,4 @@
-import { UserRepository } from "../repositories/user-repository";
+import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
 
 export class UserService {

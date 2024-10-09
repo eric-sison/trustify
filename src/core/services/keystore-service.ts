@@ -1,9 +1,9 @@
 import { createCipheriv, createDecipheriv, createHash, generateKeyPairSync, randomBytes } from "crypto";
-import { KeyStoreRepository } from "../repositories/keystore-repository";
+import { KeyStoreRepository } from "@trustify/core/repositories/keystore-repository";
 import { generateIdFromEntropySize } from "lucia";
 import { appConfig } from "@trustify/config/environment";
-import { exportJWK, importPKCS8, importSPKI, SignJWT } from "jose";
-import { OidcError } from "../types/oidc-error";
+import { exportJWK, importPKCS8, importSPKI } from "jose";
+import { OidcError } from "@trustify/core/types/oidc-error";
 
 export class KeyStoreService {
   private readonly algorithm = "aes-256-cbc";

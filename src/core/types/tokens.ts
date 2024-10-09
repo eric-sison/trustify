@@ -1,6 +1,6 @@
 import { type KeyLike } from "jose";
 import { z } from "zod";
-import { UserAddressSchema } from "../schemas/user-schema";
+import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 
 export type GenerateTokenOptions = {
   keyId: string | undefined;

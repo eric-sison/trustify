@@ -1,8 +1,8 @@
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
+import { userInfoBearerAuth } from "@trustify/core/middlewares/userinfo-bearer";
+import { UserRepository } from "@trustify/core/repositories/user-repository";
+import { TokenService } from "@trustify/core/services/token-service";
 import { Hono } from "hono";
-import { userInfoBearerAuth } from "../middlewares/userinfo-bearer";
-import { UserRepository } from "../repositories/user-repository";
-import { TokenService } from "../services/token-service";
 
 export const userInfoHandler = new Hono<HonoAppBindings>()
   .post("/", userInfoBearerAuth, async (c) => {

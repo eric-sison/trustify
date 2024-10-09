@@ -1,5 +1,5 @@
 import { redisStore } from "@trustify/config/redis";
-import { OidcError } from "../types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 
 type CacheServiceOptions<T> = {
   key: string;

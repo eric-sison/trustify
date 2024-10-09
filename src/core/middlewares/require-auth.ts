@@ -1,7 +1,7 @@
 import { lucia } from "@trustify/config/lucia";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
-import { cache } from "../libs/cache";
+import { cache } from "@trustify/core/libs/cache";
 
 export const requireAuth = createMiddleware(async (c, next) => {
   // get session_id from cookie

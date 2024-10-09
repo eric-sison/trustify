@@ -1,6 +1,6 @@
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
+import { KeyStoreRepository } from "@trustify/core/repositories/keystore-repository";
 import { Hono } from "hono";
-import { KeyStoreRepository } from "../repositories/keystore-repository";
 
 export const discoveryHandler = new Hono()
   .get("/openid-configuration", async (c) => {

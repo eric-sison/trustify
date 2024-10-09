@@ -1,5 +1,5 @@
 import { keyStore } from "@trustify/db/schema/keystore";
-import { OidcError } from "../types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { db } from "@trustify/config/postgres";
 import { eq, sql } from "drizzle-orm";
 import { KEY_STATUS } from "@trustify/utils/constants";

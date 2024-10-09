@@ -1,9 +1,8 @@
 import { char, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
-import { users } from "./users";
 import { ID_LENGTH } from "@trustify/utils/constants";
+import { users } from "./users";
 import { clients } from "./clients";
 import { type userAgent } from "next/server";
-import { generateId } from "lucia";
 
 export const sessions = pgTable("sessions", {
   //? This field is handled by lucia

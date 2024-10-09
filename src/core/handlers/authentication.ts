@@ -3,9 +3,9 @@ import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { appConfig } from "@trustify/config/environment";
 import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { AuthenticationService } from "@trustify/core/services/authentication-service";
+import { requireAuth } from "@trustify/core/middlewares/require-auth";
 import { encodeUrl } from "@trustify/utils/encode-url";
 import { Hono } from "hono";
-import { requireAuth } from "../middlewares/require-auth";
 
 export const authenticationHandler = new Hono<HonoAppBindings>()
 

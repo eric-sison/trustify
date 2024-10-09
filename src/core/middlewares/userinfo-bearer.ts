@@ -2,7 +2,7 @@ import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { bearerAuth } from "hono/bearer-auth";
 import { createMiddleware } from "hono/factory";
 import { createLocalJWKSet, jwtVerify } from "jose";
-import { KeyStoreRepository } from "../repositories/keystore-repository";
+import { KeyStoreRepository } from "@trustify/core/repositories/keystore-repository";
 
 export const userInfoBearerAuth = createMiddleware(async (c, next) => {
   const bearerAuthMiddleware = bearerAuth({

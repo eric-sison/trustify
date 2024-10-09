@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { LoginFormSchema } from "../schemas/auth-schema";
-import { UserRepository } from "../repositories/user-repository";
+import { LoginFormSchema } from "@trustify/core/schemas/auth-schema";
+import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { lucia } from "@trustify/config/lucia";
@@ -12,7 +12,7 @@ import { generateIdFromEntropySize, Session } from "lucia";
 import { SessionRepository } from "../repositories/session-repository";
 import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
 import { redisStore } from "@trustify/config/redis";
-import { AuthCodePayload } from "../types/auth-code-payload";
+import { AuthCodePayload } from "@trustify/core/types/auth-code-payload";
 import { userAgent } from "next/server";
 
 export class AuthenticationService {
