@@ -4,7 +4,7 @@ import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 
 export type GenerateTokenOptions = {
   keyId: string | undefined;
-  privateKey: KeyLike;
+  signKey: KeyLike;
   subject: string;
   audience: string | string[] | undefined;
   claims?: object;

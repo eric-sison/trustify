@@ -12,8 +12,8 @@ import { generateIdFromEntropySize, Session } from "lucia";
 import { SessionRepository } from "../repositories/session-repository";
 import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
 import { redisStore } from "@trustify/config/redis";
-import { AuthCodePayload } from "@trustify/core/types/auth-code-payload";
 import { userAgent } from "next/server";
+import { AuthCodePayloadSchema } from "../schemas/token-schema";
 
 export class AuthenticationService {
   constructor(private readonly context: Context<HonoAppBindings>) {}
@@ -117,13 +117,25 @@ export class AuthenticationService {
     }
   }
 
-  public async generateAuthorizationCode(payload: AuthCodePayload) {
+  public async generateAuthorizationCode(payload: z.infer<typeof AuthCodePayloadSchema>) {
+    // Validate the payload before storing in redis
+    const validatedPayload = AuthCodePayloadSchema.safeParse(payload);
+
+    // Throw an error if payload is not valid
+    if (!validatedPayload.success) {
+      throw new OidcError({
+        error: "code_payload_malformed",
+        message: "Make sure your authorization code's payload is valid.",
+        status: 400,
+      });
+    }
+
     try {
       // Generate authorization code
       const authorizationCode = `auc_${generateIdFromEntropySize(AUTH_CODE_LENGTH)}`;
 
       // Attempt to store it in redis
-      await redisStore.set(authorizationCode, JSON.stringify(payload), "EX", 60 * 5);
+      await redisStore.set(authorizationCode, JSON.stringify(validatedPayload.data), "EX", 60 * 5);
 
       // Return the generated authorization code
       return authorizationCode;

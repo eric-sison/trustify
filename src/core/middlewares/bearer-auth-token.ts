@@ -4,7 +4,7 @@ import { createMiddleware } from "hono/factory";
 import { createLocalJWKSet, jwtVerify } from "jose";
 import { KeyStoreRepository } from "@trustify/core/repositories/keystore-repository";
 
-export const userInfoBearerAuth = createMiddleware(async (c, next) => {
+export const bearerAuthToken = createMiddleware(async (c, next) => {
   const bearerAuthMiddleware = bearerAuth({
     verifyToken: async (token, c) => {
       const keyStoreRepository = new KeyStoreRepository();
@@ -21,7 +21,7 @@ export const userInfoBearerAuth = createMiddleware(async (c, next) => {
           audience: [oidcDiscovery.userinfo_endpoint],
         });
 
-        c.set("subject", payload.sub);
+        c.set("payload", payload);
 
         return true;
       } catch (error) {

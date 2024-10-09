@@ -1,11 +1,11 @@
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
-import { userInfoBearerAuth } from "@trustify/core/middlewares/userinfo-bearer";
+import { bearerAuthToken } from "@trustify/core/middlewares/bearer-auth-token";
 import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { TokenService } from "@trustify/core/services/token-service";
 import { Hono } from "hono";
 
 export const userInfoHandler = new Hono<HonoAppBindings>()
-  .post("/", userInfoBearerAuth, async (c) => {
+  .post("/", bearerAuthToken, async (c) => {
     const userRepository = new UserRepository();
 
     // @ts-expect-error - this is not type safe
@@ -44,13 +44,16 @@ export const userInfoHandler = new Hono<HonoAppBindings>()
 
     return c.json(userInfo);
   })
-  .get("/", userInfoBearerAuth, async (c) => {
+  .get("/", bearerAuthToken, async (c) => {
     const userRepository = new UserRepository();
 
     const tokenService = new TokenService();
 
     // @ts-expect-error - this is not type safe
-    const user = await userRepository.getUserById(c.get("subject"));
+    const payload = c.get("payload");
+
+    // @ts-expect-error - this is not type safe
+    const user = await userRepository.getUserById(payload.sub);
 
     const birthdate = user.birthdate?.toISOString().split("T")[0];
 
@@ -83,7 +86,8 @@ export const userInfoHandler = new Hono<HonoAppBindings>()
       updated_at: secondsSinceEpoch,
     };
 
-    const claims = tokenService.setClaimsFromScope("openid phone", user);
+    // @ts-expect-error - this is not type safe
+    const claims = tokenService.setClaimsFromScope(payload.scope, user);
 
     return c.json({ ...claims, sub: userInfo.sub });
   });

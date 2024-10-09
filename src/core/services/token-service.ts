@@ -1,8 +1,7 @@
 import { redisStore } from "@trustify/config/redis";
-import { TokenRequestSchema } from "../schemas/token-schema";
+import { AuthCodePayloadSchema, TokenHeaderSchema, TokenBodySchema } from "../schemas/token-schema";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
-import { AuthCodePayload } from "@trustify/core/types/auth-code-payload";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { z } from "zod";
 import { GenerateTokenOptions, RequestedClaims } from "../types/tokens";
@@ -13,12 +12,12 @@ import { OidcScopes } from "./authorization-service";
 import { Nullable } from "@trustify/utils/nullable-type";
 
 export class TokenService {
-  constructor() {} // private readonly tokenRequest: z.infer<typeof TokenRequestSchema>, // private readonly tokenHeader: z.infer<typeof TokenHeaderSchema>,
+  constructor() {}
 
-  public async handleTokenAuthMethodFlow(
-    payload: AuthCodePayload,
-    tokenRequest: z.infer<typeof TokenRequestSchema>,
-    authorizationHeader: string | undefined,
+  public async handleClientAuthMethod(
+    codeChallenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
+    tokenRequest: z.infer<typeof TokenBodySchema>,
+    authorizationHeader: z.infer<typeof TokenHeaderSchema>["authorization"],
   ) {
     // Extract the authorization header from the request
     //const authHeader = this.tokenHeader.authorization;
@@ -29,7 +28,7 @@ export class TokenService {
       const client = await this.handleClientAuthBasic(authorizationHeader);
 
       // Handle code_challenge and code_verifier matching
-      await this.handlePKCE(payload, tokenRequest.code_verifier);
+      await this.handlePKCE(codeChallenge, tokenRequest.code_verifier);
 
       // Return the client
       return client;
@@ -45,14 +44,17 @@ export class TokenService {
     }
   }
 
-  private async handlePKCE(payload: AuthCodePayload, codeVerifier: string | undefined) {
+  private async handlePKCE(
+    codeChallenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
+    codeVerifier: z.infer<typeof TokenBodySchema>["code_verifier"],
+  ) {
     // Check if the request to /token has code_verifier
     if (codeVerifier) {
       // Hash the code verifier to see if it matches with the stored code_challenge
       const hashedCode = await this.hashCodeVerifier(codeVerifier);
 
       // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
-      if (hashedCode !== payload.codeChallenge) {
+      if (hashedCode !== codeChallenge) {
         throw new OidcError({
           error: "invalid_code",
           message: "Code challenge and verifier don't match",
@@ -140,7 +142,7 @@ export class TokenService {
 
     try {
       // Otherwise, parse and return the payload
-      return JSON.parse(requestDetails) as AuthCodePayload;
+      return JSON.parse(requestDetails) as z.infer<typeof AuthCodePayloadSchema>;
 
       // Handle JSON.parse error
     } catch (error) {
@@ -203,7 +205,7 @@ export class TokenService {
           alg: "RS256",
           kid: options.keyId,
         })
-        .sign(options.privateKey);
+        .sign(options.signKey);
 
       return token;
     } catch (error) {
@@ -218,7 +220,6 @@ export class TokenService {
     }
   }
 
-  // createdAt, role, password
   public setClaimsFromScope(
     scope: string,
     user: Omit<typeof users.$inferSelect, "createdAt" | "role" | "password" | "suspended">,
@@ -249,9 +250,7 @@ export class TokenService {
         case "profile": {
           const birthdate = user.birthdate?.toISOString().split("T")[0];
 
-          const updatedAt = user.updatedAt.getTime();
-
-          const date = new Date(updatedAt); // Automatically converts to UTC
+          const date = new Date(user.updatedAt.getTime()); // Automatically convert to UTC
 
           const secondsSinceEpoch = Math.floor(date.getTime() / 1000);
 
