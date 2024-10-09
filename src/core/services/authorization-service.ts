@@ -10,8 +10,8 @@ import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { clients } from "@trustify/db/schema/clients";
 import { z } from "zod";
 
-type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
-type OidcResponseType = (typeof oidcDiscovery.response_types_supported)[number];
+export type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
+export type OidcResponseType = (typeof oidcDiscovery.response_types_supported)[number];
 
 export class AuthorizationService {
   // Construct the AuthorizationService class by requiring the loginRequest retrieved from the URL

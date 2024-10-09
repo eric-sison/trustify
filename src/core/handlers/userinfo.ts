@@ -2,18 +2,18 @@ import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { Hono } from "hono";
 import { userInfoBearerAuth } from "../middlewares/userinfo-bearer";
 import { UserRepository } from "../repositories/user-repository";
-import dayjs from "dayjs";
+import { TokenService } from "../services/token-service";
 
 export const userInfoHandler = new Hono<HonoAppBindings>()
   .post("/", userInfoBearerAuth, async (c) => {
     const userRepository = new UserRepository();
 
-    // @ts-expect-error
+    // @ts-expect-error - this is not type safe
     const user = await userRepository.getUserById(c.get("subject"));
 
     const birthdate = user.birthdate?.toISOString().split("T")[0];
 
-    const updatedAt = user.updated_at.getTime();
+    const updatedAt = user.updatedAt.getTime();
 
     const date = new Date(updatedAt); // Automatically converts to UTC
 
@@ -21,23 +21,23 @@ export const userInfoHandler = new Hono<HonoAppBindings>()
 
     const userInfo = {
       sub: user.id,
-      name: `${user.given_name} ${user.middle_name} ${user.family_name}`,
-      given_name: user.given_name,
-      family_name: user.family_name,
-      middle_name: user.given_name,
+      name: `${user.givenName} ${user.middleName} ${user.familyName}`,
+      given_name: user.givenName,
+      family_name: user.familyName,
+      middle_name: user.givenName,
       nickname: user.nickname,
-      preferred_username: user.preferred_username,
+      preferred_username: user.preferredUsername,
       profile: user.profile,
       picture: user.picture,
       website: user.website,
       email: user.email,
-      email_verified: user.email_verified,
+      email_verified: user.emailVerified,
       gender: user.gender,
       birthdate: birthdate,
       zoneinfo: user.zoneinfo,
       locale: user.locale,
-      phone_number: user.phone_number,
-      phone_number_verified: user.phone_number_verified,
+      phone_number: user.phoneNumber,
+      phone_number_verified: user.phoneNumberVerified,
       address: user.address,
       updated_at: secondsSinceEpoch,
     };
@@ -47,12 +47,14 @@ export const userInfoHandler = new Hono<HonoAppBindings>()
   .get("/", userInfoBearerAuth, async (c) => {
     const userRepository = new UserRepository();
 
-    // @ts-expect-error
+    const tokenService = new TokenService();
+
+    // @ts-expect-error - this is not type safe
     const user = await userRepository.getUserById(c.get("subject"));
 
     const birthdate = user.birthdate?.toISOString().split("T")[0];
 
-    const updatedAt = user.updated_at.getTime();
+    const updatedAt = user.updatedAt.getTime();
 
     const date = new Date(updatedAt); // Automatically converts to UTC
 
@@ -60,26 +62,28 @@ export const userInfoHandler = new Hono<HonoAppBindings>()
 
     const userInfo = {
       sub: user.id,
-      name: `${user.given_name} ${user.middle_name} ${user.family_name}`,
-      given_name: user.given_name,
-      family_name: user.family_name,
-      middle_name: user.given_name,
+      name: `${user.givenName} ${user.middleName} ${user.familyName}`,
+      given_name: user.givenName,
+      family_name: user.familyName,
+      middle_name: user.givenName,
       nickname: user.nickname,
-      preferred_username: user.preferred_username,
+      preferred_username: user.preferredUsername,
       profile: user.profile,
       picture: user.picture,
       website: user.website,
       email: user.email,
-      email_verified: user.email_verified,
+      email_verified: user.emailVerified,
       gender: user.gender,
       birthdate: birthdate,
       zoneinfo: user.zoneinfo,
       locale: user.locale,
-      phone_number: user.phone_number,
-      phone_number_verified: user.phone_number_verified,
+      phone_number: user.phoneNumber,
+      phone_number_verified: user.phoneNumberVerified,
       address: user.address,
       updated_at: secondsSinceEpoch,
     };
 
-    return c.json(userInfo);
+    const claims = tokenService.setClaimsFromScope("openid email", user);
+
+    return c.json({ ...claims, sub: userInfo.sub });
   });

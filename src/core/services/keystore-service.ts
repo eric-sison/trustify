@@ -4,8 +4,6 @@ import { generateIdFromEntropySize } from "lucia";
 import { appConfig } from "@trustify/config/environment";
 import { exportJWK, importPKCS8, importSPKI, SignJWT } from "jose";
 import { OidcError } from "../types/oidc-error";
-import { GenerateTokenOptions } from "../types/tokens";
-import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 
 export class KeyStoreService {
   private readonly algorithm = "aes-256-cbc";
@@ -29,37 +27,6 @@ export class KeyStoreService {
 
     // Return the extracted keys
     return { privateKeyPKCS8, privateKey: decryptedPrivateKey, publicKey: key.publicKey };
-  }
-
-  public async generateToken(options: GenerateTokenOptions) {
-    try {
-      const token = await new SignJWT({
-        iss: oidcDiscovery.issuer,
-        sub: options.subject,
-        aud: options.audience,
-        ...options?.customClaims,
-        exp: options.expiration,
-        nbf: Math.floor(Date.now() / 1000),
-        iat: Math.floor(Date.now() / 1000),
-      })
-        .setProtectedHeader({
-          typ: "JWT",
-          alg: "RS256",
-          kid: options.keyId,
-        })
-        .sign(options.privateKey);
-
-      return token;
-    } catch (error) {
-      throw new OidcError({
-        error: "invalid_id_token",
-        message: "Unable to generate id_token",
-        status: 400,
-
-        // @ts-expect-error error is of type unknown
-        stack: error.stack,
-      });
-    }
   }
 
   public async createKey() {

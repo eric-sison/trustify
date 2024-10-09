@@ -5,45 +5,51 @@ import { ClientRepository } from "@trustify/core/repositories/client-repository"
 import { AuthCodePayload } from "@trustify/core/types/auth-code-payload";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { z } from "zod";
-import { UserRepository } from "../repositories/user-repository";
+import { GenerateTokenOptions, RequestedClaims } from "../types/tokens";
+import { SignJWT } from "jose";
+import { oidcDiscovery } from "@trustify/config/oidc-discovery";
+import { users } from "@trustify/db/schema/users";
+import { OidcScopes } from "./authorization-service";
+import { Nullable } from "@trustify/utils/nullable-type";
 
 export class TokenService {
-  constructor(
-    private readonly tokenHeader: z.infer<typeof TokenHeaderSchema>,
-    private readonly tokenRequest: z.infer<typeof TokenRequestSchema>,
-  ) {}
+  constructor() {} // private readonly tokenRequest: z.infer<typeof TokenRequestSchema>, // private readonly tokenHeader: z.infer<typeof TokenHeaderSchema>,
 
-  public async handleTokenAuthMethodFlow(payload: AuthCodePayload) {
+  public async handleTokenAuthMethodFlow(
+    payload: AuthCodePayload,
+    tokenRequest: z.infer<typeof TokenRequestSchema>,
+    authorizationHeader: string | undefined,
+  ) {
     // Extract the authorization header from the request
-    const authHeader = this.tokenHeader.authorization;
+    //const authHeader = this.tokenHeader.authorization;
 
     // Check if auth method is client_auth_basic
-    if (authHeader && authHeader.split(" ")[0] === "Basic") {
+    if (authorizationHeader && authorizationHeader.split(" ")[0] === "Basic") {
       // If so, handle the client authentication
-      const client = await this.handleClientAuthBasic(authHeader);
+      const client = await this.handleClientAuthBasic(authorizationHeader);
 
       // Handle code_challenge and code_verifier matching
-      await this.handlePKCE(payload);
+      await this.handlePKCE(payload, tokenRequest.code_verifier);
 
       // Return the client
       return client;
     }
 
     // Check if auth method is client_auth_post
-    if (this.tokenRequest.client_secret) {
+    if (tokenRequest.client_secret) {
       // Verify client credentials if valid
-      const client = await this.verifyClient(this.tokenRequest.client_id!, this.tokenRequest.client_secret);
+      const client = await this.verifyClient(tokenRequest.client_id!, tokenRequest.client_secret);
 
       // Return the client
       return client;
     }
   }
 
-  private async handlePKCE(payload: AuthCodePayload) {
+  private async handlePKCE(payload: AuthCodePayload, codeVerifier: string | undefined) {
     // Check if the request to /token has code_verifier
-    if (this.tokenRequest.code_verifier) {
+    if (codeVerifier) {
       // Hash the code verifier to see if it matches with the stored code_challenge
-      const hashedCode = await this.hashCodeVerifier(this.tokenRequest.code_verifier);
+      const hashedCode = await this.hashCodeVerifier(codeVerifier);
 
       // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
       if (hashedCode !== payload.codeChallenge) {
@@ -119,9 +125,9 @@ export class TokenService {
     return { clientId, secret };
   }
 
-  public async getAuthCodePayload() {
+  public async getAuthCodePayload(code: string) {
     // Get the stored request from the authorization code issued by the server
-    const requestDetails = await redisStore.get(this.tokenRequest.code);
+    const requestDetails = await redisStore.get(code);
 
     // Throw an error if the supplied code does not exist in the store
     if (!requestDetails) {
@@ -149,27 +155,7 @@ export class TokenService {
     }
   }
 
-  public async getUser(userId: string) {
-    // Initialize userRepository to interact with the database
-    const userRepository = new UserRepository();
-
-    // Get the user by ID
-    const user = await userRepository.getUserById(userId);
-
-    // Throw an error if the user is not found
-    if (!user) {
-      throw new OidcError({
-        error: "invalid_user",
-        message: "User not found!",
-        status: 404,
-      });
-    }
-
-    // Return user
-    return user;
-  }
-
-  public async hashCodeVerifier(codeVerifier: string) {
+  private async hashCodeVerifier(codeVerifier: string) {
     try {
       // Convert the code verifier to a byte array
       const encoder = new TextEncoder();
@@ -199,6 +185,96 @@ export class TokenService {
         stack: error.stack,
       });
     }
+  }
+
+  public async generateToken(options: GenerateTokenOptions) {
+    try {
+      const token = await new SignJWT({
+        iss: oidcDiscovery.issuer,
+        sub: options.subject,
+        aud: options.audience,
+        ...options?.customClaims,
+        exp: options.expiration,
+        nbf: Math.floor(Date.now() / 1000),
+        iat: Math.floor(Date.now() / 1000),
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "RS256",
+          kid: options.keyId,
+        })
+        .sign(options.privateKey);
+
+      return token;
+    } catch (error) {
+      throw new OidcError({
+        error: "invalid_id_token",
+        message: "Unable to generate id_token",
+        status: 400,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
+  // createdAt, role, password
+  public setClaimsFromScope(
+    scope: string,
+    user: Omit<typeof users.$inferSelect, "createdAt" | "role" | "password" | "suspended">,
+  ) {
+    const requestedScopes = scope.split(" ");
+
+    const claims: Partial<Nullable<RequestedClaims>> = {};
+
+    requestedScopes.forEach((scope) => {
+      switch (scope as OidcScopes) {
+        case "email": {
+          claims.email = user.email;
+          claims.email_verified = user.emailVerified;
+          break;
+        }
+
+        case "address": {
+          claims.address = user.address;
+          break;
+        }
+
+        case "phone": {
+          claims.phone_number = user.phoneNumber;
+          claims.phone_number_verified = user.phoneNumberVerified;
+          break;
+        }
+
+        case "profile": {
+          const birthdate = user.birthdate?.toISOString().split("T")[0];
+
+          const updatedAt = user.updatedAt.getTime();
+
+          const date = new Date(updatedAt); // Automatically converts to UTC
+
+          const secondsSinceEpoch = Math.floor(date.getTime() / 1000);
+
+          claims.name = `${user.givenName} ${user.middleName} ${user.familyName}`;
+          claims.given_name = user.givenName;
+          claims.middle_name = user.middleName;
+          claims.family_name = user.familyName;
+          claims.nickname = user.nickname;
+          claims.preferred_username = user.preferredUsername;
+          claims.profile = user.profile;
+          claims.picture = user.picture;
+          claims.website = user.website;
+          claims.gender = user.gender;
+          claims.birthdate = birthdate;
+          claims.zoneinfo = user.zoneinfo;
+          claims.locale = user.locale;
+          claims.updated_at = secondsSinceEpoch;
+          break;
+        }
+      }
+    });
+
+    return claims;
   }
 
   private decodeBase64(base64String: string) {

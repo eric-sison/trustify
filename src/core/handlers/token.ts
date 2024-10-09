@@ -7,29 +7,35 @@ import { Hono } from "hono";
 import { KeyStoreService } from "../services/keystore-service";
 import { KeyStoreRepository } from "../repositories/keystore-repository";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
+import { UserService } from "../services/user-service";
+import { UserRepository } from "../repositories/user-repository";
 
 export const tokenHandler = new Hono<HonoAppBindings>().post(
   "/",
   zValidator("header", TokenHeaderSchema),
   zValidator("form", TokenRequestSchema),
   async (c) => {
-    const tokenHeader = c.req.valid("header");
+    const { authorization } = c.req.valid("header");
 
     const tokenRequest = c.req.valid("form");
 
-    const tokenService = new TokenService(tokenHeader, tokenRequest);
+    const tokenService = new TokenService();
+
+    const userService = new UserService(new UserRepository());
 
     const keyStoreService = new KeyStoreService(new KeyStoreRepository());
 
-    const payload = await tokenService.getAuthCodePayload();
+    const payload = await tokenService.getAuthCodePayload(tokenRequest.code);
 
-    const client = await tokenService.handleTokenAuthMethodFlow(payload);
+    const client = await tokenService.handleTokenAuthMethodFlow(payload, tokenRequest, authorization);
 
-    const user = await tokenService.getUser(payload.userId);
+    const user = await userService.getUser(payload.userId);
 
     const { privateKeyPKCS8, publicKey } = await keyStoreService.extractKeysFromCurrent();
 
-    const idToken = await keyStoreService.generateToken({
+    const customClaims = tokenService.setClaimsFromScope(payload.scope, user);
+
+    const idToken = await tokenService.generateToken({
       audience: client?.id,
       subject: user.id,
       keyId: publicKey.kid,
@@ -38,7 +44,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       expiration: Math.floor(Date.now() / 1000 + 60 * 60), // 1 hr
     });
 
-    const accessToken = await keyStoreService.generateToken({
+    const accessToken = await tokenService.generateToken({
       audience: [oidcDiscovery.userinfo_endpoint],
       subject: user.id,
       keyId: publicKey.kid,
