@@ -1,6 +1,7 @@
 import { lucia } from "@trustify/config/lucia";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
+import { cache } from "../libs/cache";
 
 export const requireAuth = createMiddleware(async (c, next) => {
   // get session_id from cookie
@@ -25,15 +26,14 @@ export const requireAuth = createMiddleware(async (c, next) => {
   }
 
   // cache the session
-  //   const data = await cacheService({
-  //     key: `ssid-${sessionId}`,
-  //     ttl: 3600 * 24,
-  //     onCacheMiss: async () => {
-  //       return await lucia.validateSession(sessionId);
-  //     },
-  //   });
+  const data = await cache({
+    key: `sid_${sessionId}`,
+    ttl: 3600 * 24,
+    debug: process.env.NODE_ENV === "development",
+    onCacheMiss: async () => await lucia.validateSession(sessionId),
+  });
 
-  const data = await lucia.validateSession(sessionId);
+  //const data = await lucia.validateSession(sessionId);
 
   if (data.session && data.session.fresh) {
     c.header("Set-Cookie", lucia.createSessionCookie(data.session.id).serialize(), {

@@ -10,6 +10,7 @@ type CacheServiceOptions<T> = {
   maxRetries?: number;
   retryDelay?: number;
   onCacheMiss: () => Promise<T>;
+  debug?: boolean;
 };
 
 /**
@@ -27,7 +28,7 @@ type CacheServiceOptions<T> = {
  *
  * @returns Cached data or undefined if not found or an error occurs.
  */
-export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T | undefined> => {
+export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T> => {
   // Deconstruct cache options to extract individual parameters
   const {
     key,
@@ -38,6 +39,7 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T 
     lockKey = `lock-${key}`,
     maxRetries = 5, // Set the maximum retry attempts for acquiring the lock
     retryDelay = 1000, // Set the delay (in milliseconds) before retrying to acquire the lock
+    debug = false,
   } = cacheOptions;
 
   // Function to acquire a lock to prevent concurrent access to the same cache key
@@ -78,9 +80,11 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T 
 
   // If all retry attempts are exhausted and the lock is still not acquired
   if (!lockAcquired) {
-    console.log("Failed to acquire lock after maximum retries. Please try again later.");
-
-    return undefined; // Return undefined to indicate failure
+    throw new OidcError({
+      error: "exhausted_max_retries",
+      message: "Failed to acquire lock after maximum retries. Please try again later.",
+      status: 400,
+    });
   }
 
   try {
@@ -91,6 +95,8 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T 
 
       // If a cached value is found, return it after parsing
       if (cachedValue) {
+        if (debug) console.log({ status: "Cache hit!", data: cachedValue });
+
         return JSON.parse(cachedValue) as T;
       } else {
         // If no cached value is found, invoke the cache miss function
@@ -99,11 +105,22 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T 
         // Cache the new value and assign an expiration
         await redisStore.multi().set(key, JSON.stringify(value)).expire(key, ttl).exec();
 
+        if (debug) {
+          console.log({
+            type: type,
+            status: "Cache miss!",
+            message: "Invoked onCacheMiss()",
+            cachedData: value,
+          });
+        }
+
         return value; // Return the newly fetched value
       }
     } else if (type === "set") {
       // For set type, retrieve the members of the set from Redis
       const cachedMembers = await redisStore.smembers(key);
+
+      if (debug) console.log({ status: "Cache hit!", data: cachedMembers });
 
       // If no members are found, invoke the cache miss function
       if (cachedMembers.length === 0) {
@@ -129,6 +146,15 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T 
           .expire(key, ttl)
           .exec();
 
+        if (debug) {
+          console.log({
+            type: type,
+            status: "Cache miss!",
+            message: "Invoked onCacheMiss()",
+            cachedData: value,
+          });
+        }
+
         // Return the newly fetched value
         return value;
       } else {
@@ -151,6 +177,10 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T 
     await releaseLock();
   }
 
-  // Default return statement (this should not be reached)
-  return undefined;
+  // Throw error if the function did not yield a valid result
+  throw new OidcError({
+    error: "invalid_cache_result",
+    message: "Cache miss and cache function did not provide a result.",
+    status: 500,
+  });
 };

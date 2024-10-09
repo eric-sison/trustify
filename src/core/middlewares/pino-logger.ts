@@ -5,8 +5,11 @@ import pretty from "pino-pretty";
 export function pinoLogger() {
   return logger({
     pino: pino(process.env.NODE_ENV === "production" ? undefined : pretty()),
-    http: {
-      reqId: () => crypto.randomUUID(),
-    },
+    http:
+      process.env.NODE_ENV === "development"
+        ? false
+        : {
+            reqId: () => crypto.randomUUID(),
+          },
   });
 }

@@ -73,4 +73,8 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
     return c.json({ code, state });
   })
 
-  .post("/logout");
+  // TODO: implement logout
+  .post("/logout", async () => {
+    // invalidate session in the database
+    // make sure to remove the sid in the redis cache as well
+  });
