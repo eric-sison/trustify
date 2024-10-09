@@ -5,10 +5,10 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";
-import { z } from "zod";
 import { Context } from "hono";
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { clients } from "@trustify/db/schema/clients";
+import { z } from "zod";
 
 type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
 type OidcResponseType = (typeof oidcDiscovery.response_types_supported)[number];

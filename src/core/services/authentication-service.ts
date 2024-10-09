@@ -13,6 +13,7 @@ import { SessionRepository } from "../repositories/session-repository";
 import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
 import { redisStore } from "@trustify/config/redis";
 import { AuthCodePayload } from "../types/auth-code-payload";
+import { userAgent } from "next/server";
 
 export class AuthenticationService {
   constructor(private readonly context: Context<HonoAppBindings>) {}
@@ -21,7 +22,7 @@ export class AuthenticationService {
     // Create a session object
     const session = await lucia.createSession(user.id, {
       clientId: this.context.req.query("client_id")!,
-      userAgent: this.context.req.raw.headers.get("User-Agent"),
+      userAgent: userAgent(this.context.req.raw),
       signedInAt: new Date(),
     });
 
@@ -39,11 +40,19 @@ export class AuthenticationService {
     // Get the user by email address
     const user = await userRepository.getUserByEmail(credentials.email);
 
+    // Throw an error if user was not found
+    if (!user) {
+      throw new OidcError({
+        error: "invalid_credentials",
+        message: "Incorrect email or password. Try again.",
+        status: 401,
+      });
+    }
+
     // check if password is valid
     const isPasswordValid = await verifyHash(user.password, credentials.password);
 
-    // Throw an error if user was not found
-    if (!user || !isPasswordValid) {
+    if (!isPasswordValid) {
       throw new OidcError({
         error: "invalid_credentials",
         message: "Incorrect email or password. Try again.",

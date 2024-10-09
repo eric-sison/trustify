@@ -4,6 +4,7 @@ import { Lucia, TimeSpan } from "lucia";
 import { db } from "./postgres";
 import { sessions } from "@trustify/db/schema/sessions";
 
+// @ts-expect-error the sessions table has custom columns
 const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 
 export const lucia = new Lucia(adapter, {

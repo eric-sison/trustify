@@ -4,12 +4,14 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { notFound } from "@trustify/core/middlewares/not-found";
 import { onError } from "@trustify/core/middlewares/on-error";
-import { testHander } from "@trustify/core/handlers/test";
 import { pinoLogger } from "@trustify/core/middlewares/pino-logger";
 import { PinoLogger } from "hono-pino";
 import { authenticationHandler } from "@trustify/core/handlers/authentication";
 import { DatabaseUserAttributes } from "@trustify/config/lucia";
 import { Session } from "lucia";
+import { tokenHandler } from "@trustify/core/handlers/token";
+import { keystoreHandler } from "@trustify/core/handlers/keystore";
+import { userInfoHandler } from "@trustify/core/handlers/userinfo";
 
 export type HonoAppBindings = {
   Variables: {
@@ -29,10 +31,12 @@ app.onError(onError);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = app
-  .route("/v1/.well-known/openid-configuration", discoveryHandler)
+  .route("/v1/.well-known", discoveryHandler)
   .route("/v1/authorization", authorizationHandler)
+  .route("/v1/userinfo", userInfoHandler)
   .route("/v1/oidc", authenticationHandler)
-  .route("/v1/test", testHander);
+  .route("/v1/token", tokenHandler)
+  .route("/v1/keystore", keystoreHandler);
 
 export const GET = handle(app);
 export const POST = handle(app);

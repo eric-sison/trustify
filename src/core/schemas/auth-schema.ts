@@ -22,8 +22,3 @@ export const LoginFormSchema = z.object({
     message: "Password must be at least 8 characters long.",
   }),
 });
-
-export const UserClientIdSchema = z.object({
-  client_id: z.string(),
-  user_id: z.string(),
-});

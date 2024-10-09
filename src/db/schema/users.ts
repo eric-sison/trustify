@@ -8,7 +8,9 @@ export const userGenderEnum = pgEnum("user_gender_enum", USER_GENDER);
 export const userRolesEnum = pgEnum("user_roles_enum", USER_ROLES);
 
 export const users = pgTable("users", {
-  id: char("user_id", { length: ID_LENGTH }).primaryKey().default(generateId(ID_LENGTH)),
+  id: char("user_id", { length: ID_LENGTH })
+    .primaryKey()
+    .$defaultFn(() => generateId(ID_LENGTH)),
   role: userRolesEnum("role").default("client").notNull(),
   email: varchar("email").unique().notNull(),
   password: varchar("password").notNull(),

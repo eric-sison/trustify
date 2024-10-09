@@ -1,17 +1,21 @@
-import { char, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { char, jsonb, pgTable, timestamp } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { ID_LENGTH } from "@trustify/utils/constants";
 import { clients } from "./clients";
+import { type userAgent } from "next/server";
+import { generateId } from "lucia";
 
 export const sessions = pgTable("sessions", {
-  id: varchar("session_id").primaryKey(),
+  id: char("session_id")
+    .primaryKey()
+    .$defaultFn(() => generateId(ID_LENGTH)),
   userId: char("user_id_fk", { length: ID_LENGTH })
     .notNull()
     .references(() => users.id),
   clientId: char("client_id_fk", { length: ID_LENGTH })
     .notNull()
     .references(() => clients.id),
-  userAgent: text("user_agent"),
+  userAgent: jsonb("user_agent").$type<ReturnType<typeof userAgent>>(),
   signedInAt: timestamp("last_signin_at", {
     withTimezone: true,
     mode: "date",

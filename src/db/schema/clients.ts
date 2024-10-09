@@ -10,7 +10,9 @@ export const tokenEndpointAuthMethodEnum = pgEnum(
 );
 
 export const clients = pgTable("clients", {
-  id: char("client_id", { length: ID_LENGTH }).primaryKey().default(generateId(ID_LENGTH)),
+  id: char("client_id", { length: ID_LENGTH })
+    .primaryKey()
+    .$defaultFn(() => generateId(ID_LENGTH)),
   name: varchar("name", { length: 100 }).unique().notNull(),
   description: text("description"),
   logo: varchar("logo"),

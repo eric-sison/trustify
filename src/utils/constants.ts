@@ -9,3 +9,5 @@ export const AUTH_CODE_LENGTH = 64;
 export const USER_GENDER = ["Male", "Female"] as const;
 
 export const USER_ROLES = ["admin", "client"] as const;
+
+export const KEY_STATUS = ["previous", "current"] as const;
