@@ -33,14 +33,14 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
 
     const { privateKeyPKCS8, publicKey } = await keyStoreService.extractKeysFromCurrent();
 
-    const customClaims = tokenService.setClaimsFromScope(payload.scope, user);
+    const claims = tokenService.setClaimsFromScope(payload.scope, user);
 
     const idToken = await tokenService.generateToken({
       audience: client?.id,
       subject: user.id,
       keyId: publicKey.kid,
       privateKey: privateKeyPKCS8,
-      customClaims: { nonce: payload.nonce },
+      claims: { ...claims, nonce: payload.nonce },
       expiration: Math.floor(Date.now() / 1000 + 60 * 60), // 1 hr
     });
 

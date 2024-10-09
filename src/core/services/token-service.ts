@@ -193,7 +193,7 @@ export class TokenService {
         iss: oidcDiscovery.issuer,
         sub: options.subject,
         aud: options.audience,
-        ...options?.customClaims,
+        ...options?.claims,
         exp: options.expiration,
         nbf: Math.floor(Date.now() / 1000),
         iat: Math.floor(Date.now() / 1000),

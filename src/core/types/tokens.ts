@@ -7,7 +7,7 @@ export type GenerateTokenOptions = {
   privateKey: KeyLike;
   subject: string;
   audience: string | string[] | undefined;
-  customClaims?: object;
+  claims?: object;
   expiration: number | undefined;
 };
 

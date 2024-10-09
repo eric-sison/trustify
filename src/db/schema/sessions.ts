@@ -1,4 +1,4 @@
-import { char, jsonb, pgTable, timestamp } from "drizzle-orm/pg-core";
+import { char, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { ID_LENGTH } from "@trustify/utils/constants";
 import { clients } from "./clients";
@@ -6,9 +6,8 @@ import { type userAgent } from "next/server";
 import { generateId } from "lucia";
 
 export const sessions = pgTable("sessions", {
-  id: char("session_id")
-    .primaryKey()
-    .$defaultFn(() => generateId(ID_LENGTH)),
+  //? This field is handled by lucia
+  id: varchar("session_id", { length: 255 }).primaryKey(),
   userId: char("user_id_fk", { length: ID_LENGTH })
     .notNull()
     .references(() => users.id),
