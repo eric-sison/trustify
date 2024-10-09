@@ -83,7 +83,7 @@ export const userInfoHandler = new Hono<HonoAppBindings>()
       updated_at: secondsSinceEpoch,
     };
 
-    const claims = tokenService.setClaimsFromScope("openid email", user);
+    const claims = tokenService.setClaimsFromScope("openid phone", user);
 
     return c.json({ ...claims, sub: userInfo.sub });
   });
