@@ -1,4 +1,4 @@
-import { OidcLoginForm } from "@trustify/components/features/OidcLoginForm";
+import { OidcLoginForm } from "@trustify/components/features/oidc/OidcLoginForm";
 import { appConfig } from "@trustify/config/environment";
 import { validateSession } from "@trustify/core/libs/validate-session";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   title: "Login",
 };
 
-export default async function OidcLogin(props: PageProps<string, z.infer<typeof LoginRequestSchema>>) {
+export default async function OidcLogin(
+  props: PageProps<string, z.infer<typeof LoginRequestSchema>>,
+) {
   // Check if params are valid
   const parsedParams = LoginRequestSchema.safeParse(props.searchParams);
 

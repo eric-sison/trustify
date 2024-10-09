@@ -13,14 +13,14 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from "@trustify/components/ui/form";
-import { Label } from "@trustify/components/ui/label";
+} from "@trustify/components/ui/Form";
+import { Label } from "@trustify/components/ui/Label";
 import Link from "next/link";
-import { PasswordInput } from "@trustify/components/ui/password-input";
-import { Alert, AlertDescription } from "../ui/alert";
-import { Input } from "@trustify/components/ui/input";
-import { LoadingSpinner } from "@trustify/components/ui/loading-spinner";
-import { Button } from "@trustify/components/ui/button";
+import { PasswordInput } from "@trustify/components/ui/PasswordInput";
+import { Alert, AlertDescription } from "../../ui/Alert";
+import { Input } from "@trustify/components/ui/Input";
+import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
+import { Button } from "@trustify/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -28,7 +28,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@trustify/components/ui/card";
+} from "@trustify/components/ui/Card";
 
 type OidcLoginFormProps = z.infer<typeof LoginRequestSchema>;
 
@@ -113,13 +113,15 @@ export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="select-none">Please enter your password.</FormDescription>
+                    <FormDescription className="select-none">
+                      Please enter your password.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </CardContent>
-            <CardFooter>
+            <CardFooter className="my-5">
               <Button disabled={login.isLoading} className="w-full space-x-2" type="submit">
                 {login.isLoading ? (
                   <div className="flex items-center gap-2">

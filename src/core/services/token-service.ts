@@ -1,5 +1,5 @@
 import { redisStore } from "@trustify/config/redis";
-import { TokenHeaderSchema, TokenRequestSchema } from "../schemas/token-schema";
+import { TokenRequestSchema } from "../schemas/token-schema";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { AuthCodePayload } from "@trustify/core/types/auth-code-payload";

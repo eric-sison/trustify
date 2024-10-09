@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "./input";
+import { Input } from "./Input";
 import { Eye, EyeOff } from "lucide-react";
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./tooltip";
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./Tooltip";
 
 export const PasswordInput = React.forwardRef<
   React.ElementRef<typeof Input>,

@@ -10,7 +10,7 @@ import { ApiError } from "next/dist/server/api-utils";
 import { useRouter } from "next/navigation";
 import { FunctionComponent, useEffect } from "react";
 import { z } from "zod";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/Button";
 
 type OidcConsentFormProps = {
   loginRequest: z.infer<typeof LoginRequestSchema>;

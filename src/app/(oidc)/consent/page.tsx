@@ -1,4 +1,4 @@
-import { OidcConsentForm } from "@trustify/components/features/OidcConsentForm";
+import { OidcConsentForm } from "@trustify/components/features/oidc/OidcConsentForm";
 import { appConfig } from "@trustify/config/environment";
 import { validateSession } from "@trustify/core/libs/validate-session";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
@@ -7,7 +7,9 @@ import { encodeUrl } from "@trustify/utils/encode-url";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-export default async function OidcConsent(props: PageProps<string, z.infer<typeof LoginRequestSchema>>) {
+export default async function OidcConsent(
+  props: PageProps<string, z.infer<typeof LoginRequestSchema>>,
+) {
   // Parse params to validate its shape
   const parsedParams = LoginRequestSchema.safeParse(props.searchParams);
 
