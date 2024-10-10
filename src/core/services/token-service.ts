@@ -1,20 +1,24 @@
-import { redisStore } from "@trustify/config/redis";
 import {
   AuthCodePayloadSchema,
   TokenHeaderSchema,
   TokenBodySchema,
   RequestClaimSchema,
   ClaimsSchema,
-} from "../schemas/token-schema";
+} from "@trustify/core/schemas/token-schema";
+import {
+  GenerateTokenOptions,
+  OidcScopes,
+  SupportedClaims,
+  UserClaims,
+} from "@trustify/core/types/tokens";
+import { SignJWT } from "jose";
+import { oidcDiscovery } from "@trustify/config/oidc-discovery";
+import { Nullable } from "@trustify/utils/nullable-type";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { verifyHash } from "@trustify/utils/hash-fns";
+import { redisStore } from "@trustify/config/redis";
 import { z } from "zod";
-import { GenerateTokenOptions, SupportedClaims, UserClaims } from "../types/tokens";
-import { SignJWT } from "jose";
-import { oidcDiscovery } from "@trustify/config/oidc-discovery";
-import { OidcScopes } from "./authorization-service";
-import { Nullable } from "@trustify/utils/nullable-type";
 
 export class TokenService {
   constructor() {}
@@ -327,7 +331,7 @@ export class TokenService {
     return essentialClaims;
   }
 
-  public setClaims(
+  public getClaims(
     destination: "id_token" | "userinfo",
     claims: string | undefined,
     scope: string,
@@ -358,7 +362,10 @@ export class TokenService {
       }
     }
 
-    return { ...defaultClaims, ...essentialClaims } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
+    return {
+      ...defaultClaims,
+      ...essentialClaims,
+    } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
   }
 
   public async generateToken(options: GenerateTokenOptions) {

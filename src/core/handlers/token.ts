@@ -43,7 +43,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     const user = await userService.getUser(userId);
 
     // Set the claims for id_token
-    const idTokenClaims = tokenService.setClaims("id_token", claims, scope, user);
+    const idTokenClaims = tokenService.getClaims("id_token", claims, scope, user);
 
     // Extract the keys from keystore with status "current"
     // This ensures that the server is signning new tokens using the latest key
