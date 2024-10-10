@@ -1,13 +1,18 @@
 import { redisStore } from "@trustify/config/redis";
-import { AuthCodePayloadSchema, TokenHeaderSchema, TokenBodySchema } from "../schemas/token-schema";
+import {
+  AuthCodePayloadSchema,
+  TokenHeaderSchema,
+  TokenBodySchema,
+  RequestClaimSchema,
+  ClaimsSchema,
+} from "../schemas/token-schema";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { z } from "zod";
-import { GenerateTokenOptions, RequestedClaims } from "../types/tokens";
+import { GenerateTokenOptions, SupportedClaims, UserClaims } from "../types/tokens";
 import { SignJWT } from "jose";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
-import { users } from "@trustify/db/schema/users";
 import { OidcScopes } from "./authorization-service";
 import { Nullable } from "@trustify/utils/nullable-type";
 
@@ -58,6 +63,7 @@ export class TokenService {
         throw new OidcError({
           error: "invalid_code",
           message: "Code challenge and verifier don't match",
+          description: "Code challenge and verifier don't match",
           status: 400,
         });
       }
@@ -189,9 +195,175 @@ export class TokenService {
     }
   }
 
+  /**
+   * Returns an object containing default claims based on the
+   * provided scopes. The object includes properties such as `sub`, `email`,
+   * `phone_number`, `address`, `given_name`, `middle_name`, and `family_name`, with values populated
+   * from the corresponding properties of the `user` object based on the specified scopes.
+   */
+  private setDefaultClaims(scopes: Array<OidcScopes>, user: UserClaims) {
+    // Initialize the value of the default claim. Initially, it is an empty object.
+    const defaultClaims: Partial<Nullable<SupportedClaims>> = {};
+
+    // Loop through all the possible scopes (based on the `scopes_supported`)
+    scopes.forEach((scope) => {
+      switch (scope) {
+        // If requested scope contains `openid`, include the sub claim as the user's ID
+        case "openid": {
+          defaultClaims.sub = user.id;
+          break;
+        }
+
+        // If the requested scope contains `email`, include the email claim as the user's email
+        case "email": {
+          defaultClaims.email = user.email;
+          break;
+        }
+
+        // If the scope contains `phone`, include the phone claim as the user's phone number
+        case "phone": {
+          defaultClaims.phone_number = user.phoneNumber;
+          break;
+        }
+
+        // If the scope contains `address`, include the address claim as the user's address
+        case "address": {
+          defaultClaims.address = user.address;
+          break;
+        }
+
+        // If the scope contains `profile`, incude the default profile claims as user's given_name,
+        // middle_name, and family_name, respectively
+        case "profile": {
+          defaultClaims.given_name = user.givenName;
+          defaultClaims.middle_name = user.middleName;
+          defaultClaims.family_name = user.familyName;
+
+          break;
+        }
+      }
+    });
+
+    return defaultClaims;
+  }
+
+  /**
+   * Returns an object containing essential claims based on the provided `claims` and `user` data.
+   * The object includes properties such as `email_verified`, `phone_number_verified`, `name`, `nickname`,
+   * `preferred_username`, `profile`,`picture`, `website`, `locale`, `zoneinfo`, `updated_at`, and `birthdate`,
+   * with their corresponding values. These claims are defined by the `RequestClaimSchema` type. The
+   * function checks each claim to see if it is marked as essential and then populates the
+   * `essentialClaims` object accordingly based
+   */
+  private setEssentialClaims(claims: z.infer<typeof RequestClaimSchema>, user: UserClaims) {
+    // Initialize essentialClaims to be an empty object
+    const essentialClaims: Partial<Nullable<SupportedClaims>> = {};
+
+    // Include gender if claim is marked as essential
+    if (claims.gender?.essential) {
+      essentialClaims.gender = user.gender;
+    }
+
+    // Include email_verified if claim is marked as essential
+    if (claims.email_verified?.essential) {
+      essentialClaims.email_verified = user.emailVerified;
+    }
+
+    // Include phone_number_verified if claim is marked as essential
+    if (claims.phone_number_verified?.essential) {
+      essentialClaims.phone_number_verified = user.phoneNumberVerified;
+    }
+
+    // Include name if claim is marked as essential
+    if (claims.name?.essential) {
+      essentialClaims.name = `${user.givenName} ${user.middleName} ${user.familyName}`;
+    }
+
+    // Include nickname if claim is marked as essential
+    if (claims.nickname?.essential) {
+      essentialClaims.nickname = user.nickname;
+    }
+
+    // Include preferred_username if claim is marked as essential
+    if (claims.preferred_username?.essential) {
+      essentialClaims.preferred_username = user.preferredUsername;
+    }
+
+    // Include profile if claim is marked as essential
+    if (claims.profile?.essential) {
+      essentialClaims.profile = user.profile;
+    }
+
+    // Include picture if claim is marked as essential
+    if (claims.picture?.essential) {
+      essentialClaims.picture = user.picture;
+    }
+
+    // Include website if claim is marked as essential
+    if (claims.website?.essential) {
+      essentialClaims.website = user.website;
+    }
+
+    // Include locale if claim is marked as essential
+    if (claims.locale?.essential) {
+      essentialClaims.locale = user.locale;
+    }
+
+    // Include zoneinfo if claim is marked as essential
+    if (claims.zoneinfo?.essential) {
+      essentialClaims.zoneinfo = user.zoneinfo;
+    }
+
+    // Include updated_at if claim is marked as essential
+    if (claims.updated_at?.essential) {
+      essentialClaims.updated_at = Math.floor(user.updatedAt.getTime() / 1000);
+    }
+
+    // Include birthdate if claim is marked as essential
+    if (claims.birthdate?.essential) {
+      essentialClaims.birthdate = user.birthdate?.toISOString().split("T")[0];
+    }
+
+    return essentialClaims;
+  }
+
+  public setClaims(
+    destination: "id_token" | "userinfo",
+    claims: string | undefined,
+    scope: string,
+    user: UserClaims,
+  ) {
+    // Split the scope string to extract the requested scopes
+    const requestedScopes = scope.split(" ") as Array<OidcScopes>;
+
+    // Initialize the default claims based on the requested scopes
+    const defaultClaims = this.setDefaultClaims(requestedScopes, user);
+
+    // Initialize essential claims as an empty object
+    let essentialClaims: Partial<Nullable<SupportedClaims>> = {};
+
+    // Check if claims is present in the request url
+    if (claims) {
+      // If so, parse the string to extract the requested claims
+      const requestedClaims = JSON.parse(claims) as z.infer<typeof ClaimsSchema>;
+
+      // Check if request has essential claims set for id_token
+      if (requestedClaims.id_token && destination === "id_token") {
+        essentialClaims = this.setEssentialClaims(requestedClaims.id_token, user);
+      }
+
+      // Check if request has essential claims set for userinfo
+      if (requestedClaims.userinfo && destination === "userinfo") {
+        essentialClaims = this.setEssentialClaims(requestedClaims.userinfo, user);
+      }
+    }
+
+    return { ...defaultClaims, ...essentialClaims } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
+  }
+
   public async generateToken(options: GenerateTokenOptions) {
     try {
-      const token = await new SignJWT({
+      return await new SignJWT({
         iss: oidcDiscovery.issuer,
         sub: options.subject,
         aud: options.audience,
@@ -206,8 +378,6 @@ export class TokenService {
           kid: options.keyId,
         })
         .sign(options.signKey);
-
-      return token;
     } catch (error) {
       throw new OidcError({
         error: "invalid_id_token",
@@ -218,62 +388,6 @@ export class TokenService {
         stack: error.stack,
       });
     }
-  }
-
-  public setClaimsFromScope(
-    scope: string,
-    user: Omit<typeof users.$inferSelect, "createdAt" | "role" | "password" | "suspended">,
-  ) {
-    const requestedScopes = scope.split(" ");
-
-    const claims: Partial<Nullable<RequestedClaims>> = {};
-
-    requestedScopes.forEach((scope) => {
-      switch (scope as OidcScopes) {
-        case "email": {
-          claims.email = user.email;
-          claims.email_verified = user.emailVerified;
-          break;
-        }
-
-        case "address": {
-          claims.address = user.address;
-          break;
-        }
-
-        case "phone": {
-          claims.phone_number = user.phoneNumber;
-          claims.phone_number_verified = user.phoneNumberVerified;
-          break;
-        }
-
-        case "profile": {
-          const birthdate = user.birthdate?.toISOString().split("T")[0];
-
-          const date = new Date(user.updatedAt.getTime()); // Automatically convert to UTC
-
-          const secondsSinceEpoch = Math.floor(date.getTime() / 1000);
-
-          claims.name = `${user.givenName} ${user.middleName} ${user.familyName}`;
-          claims.given_name = user.givenName;
-          claims.middle_name = user.middleName;
-          claims.family_name = user.familyName;
-          claims.nickname = user.nickname;
-          claims.preferred_username = user.preferredUsername;
-          claims.profile = user.profile;
-          claims.picture = user.picture;
-          claims.website = user.website;
-          claims.gender = user.gender;
-          claims.birthdate = birthdate;
-          claims.zoneinfo = user.zoneinfo;
-          claims.locale = user.locale;
-          claims.updated_at = secondsSinceEpoch;
-          break;
-        }
-      }
-    });
-
-    return claims;
   }
 
   private decodeBase64(base64String: string) {

@@ -3,7 +3,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { rpcClient } from "@trustify/core/libs/rpc-client";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
-import { encodeUrl } from "@trustify/utils/encode-url";
 import { InferRequestType, InferResponseType } from "hono";
 
 import { ApiError } from "next/dist/server/api-utils";
@@ -44,7 +43,7 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
   const authorize = useMutation<
     InferResponseType<typeof $authorize>,
     ApiError,
-    InferRequestType<typeof $authorize>
+    InferRequestType<typeof $authorize>["query"]
   >({
     mutationKey: ["authorize_client"],
     mutationFn: async () => {
@@ -59,15 +58,7 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
       return await res.json();
     },
     onSuccess: (data) => {
-      const redirectUri = encodeUrl({
-        base: loginRequest.redirect_uri,
-        params: {
-          code: data.code,
-          state: data.state,
-        },
-      });
-
-      router.push(redirectUri);
+      router.push(data.redirectUri);
     },
     onError: (err) => {
       // TODO: implement error handling
@@ -106,7 +97,7 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
           <Button variant="outline">Deny</Button>
           <Button
             onClick={() => {
-              authorize.mutate({ query: loginRequest });
+              authorize.mutate(loginRequest);
             }}
           >
             Allow

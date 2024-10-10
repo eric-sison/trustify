@@ -10,6 +10,7 @@ export const LoginRequestSchema = z.object({
   scope: z.string().refine((val) => val.includes("openid"), {
     message: "Missing required scope: openid",
   }),
+  claims: z.string().optional(),
   state: z.string().optional(),
   nonce: z.string().optional(),
 });

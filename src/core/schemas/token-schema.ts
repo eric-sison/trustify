@@ -1,3 +1,4 @@
+import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { ID_LENGTH } from "@trustify/utils/constants";
 import { z } from "zod";
 
@@ -20,7 +21,18 @@ export const AuthCodePayloadSchema = z.object({
   clientId: z.string().length(ID_LENGTH),
   redirectUri: z.string().url(),
   scope: z.string(),
+  claims: z.string().optional(),
   codeChallenge: z.string().optional(),
   codeMethod: z.string().optional(),
   nonce: z.string().optional(),
+});
+
+export const RequestClaimSchema = z.record(
+  z.enum(oidcDiscovery.claims_supported),
+  z.record(z.literal("essential"), z.boolean()),
+);
+
+export const ClaimsSchema = z.object({
+  id_token: RequestClaimSchema.optional(),
+  userinfo: RequestClaimSchema.optional(),
 });

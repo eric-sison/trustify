@@ -9,32 +9,37 @@ import { Hono } from "hono";
 
 export const authenticationHandler = new Hono<HonoAppBindings>()
 
-  .post("/login", zValidator("query", LoginRequestSchema), zValidator("form", LoginFormSchema), async (c) => {
-    // Validate user crendetials from the login form
-    const credentials = c.req.valid("form");
+  .post(
+    "/login",
+    zValidator("query", LoginRequestSchema),
+    zValidator("form", LoginFormSchema),
+    async (c) => {
+      // Validate user crendetials from the login form
+      const credentials = c.req.valid("form");
 
-    // Validate the login request from query params
-    const loginRequest = c.req.valid("query");
+      // Validate the login request from query params
+      const loginRequest = c.req.valid("query");
 
-    // Initialize authentication service
-    const authenticationService = new AuthenticationService(c);
+      // Initialize authentication service
+      const authenticationService = new AuthenticationService(c);
 
-    // Get the user from the credentials passed via the login form
-    const user = await authenticationService.getUser(credentials);
+      // Get the user from the credentials passed via the login form
+      const user = await authenticationService.getUser(credentials);
 
-    // Authenticate the user with the passed credentials from initialization
-    await authenticationService.authenticateUser(user);
+      // Authenticate the user with the passed credentials from initialization
+      await authenticationService.authenticateUser(user);
 
-    // Generate the consent URL
-    const consentUrl = encodeUrl({
-      base: appConfig.adminHost,
-      path: "/consent",
-      params: { ...loginRequest },
-    });
+      // Generate the consent URL
+      const consentUrl = encodeUrl({
+        base: appConfig.adminHost,
+        path: "/consent",
+        params: { ...loginRequest },
+      });
 
-    // Return the generated consent URL
-    return c.json({ consentUrl });
-  })
+      // Return the generated consent URL
+      return c.json({ consentUrl });
+    },
+  )
 
   .get("get-authentication-details", requireAuth, async (c) => {
     // Initialize authentication service
@@ -61,6 +66,7 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
       clientId: c.var.session.clientId,
       redirectUri: loginRequest.redirect_uri,
       scope: loginRequest.scope,
+      claims: loginRequest.claims,
       codeChallenge: loginRequest.code_challenge,
       codeMethod: loginRequest.code_challenge_method,
       nonce: loginRequest.nonce,
@@ -69,8 +75,16 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
     // Get the state from the store, and delete it after
     const state = await authenticationService.getStateFromStore(loginRequest.state);
 
-    // Return the generated code and original state
-    return c.json({ code, state });
+    const redirectUri = encodeUrl({
+      base: loginRequest.redirect_uri,
+      params: {
+        code,
+        state,
+      },
+    });
+
+    // Return the generated url to redirect user to the callback/redirect_uri
+    return c.json({ redirectUri });
   })
 
   // TODO: implement logout

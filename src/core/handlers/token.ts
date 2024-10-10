@@ -31,7 +31,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     const keyStoreService = new KeyStoreService(new KeyStoreRepository());
 
     // Get the payload from store using the supplied code
-    const { userId, codeChallenge, nonce, scope } = await tokenService.getAuthCodePayload(
+    const { userId, codeChallenge, nonce, scope, claims } = await tokenService.getAuthCodePayload(
       tokenBody.code,
     );
 
@@ -42,12 +42,12 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     // Get the user details from database using the stored userId in the payload
     const user = await userService.getUser(userId);
 
+    // Set the claims for id_token
+    const idTokenClaims = tokenService.setClaims("id_token", claims, scope, user);
+
     // Extract the keys from keystore with status "current"
     // This ensures that the server is signning new tokens using the latest key
     const { privateKeyPKCS8, publicKey } = await keyStoreService.extractKeysFromCurrent();
-
-    // Construct the claims object based on the requested scope stored in the payload
-    const claims = tokenService.setClaimsFromScope(scope, user);
 
     // Generate the id_token based on the parameters acquired from previous steps
     const idToken = await tokenService.generateToken({
@@ -55,8 +55,12 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       subject: user.id,
       keyId: publicKey.kid,
       signKey: privateKeyPKCS8,
-      claims: { ...claims, nonce: nonce },
       expiration: Math.floor(Date.now() / 1000 + 60 * 60), // 1 hr
+      claims: {
+        nonce: nonce,
+        auth_time: Math.floor(Date.now() / 1000),
+        ...idTokenClaims,
+      },
     });
 
     // Similarly, generate the access_token based on the parameters acquired from previous steps
@@ -65,7 +69,6 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       subject: user.id,
       keyId: publicKey.kid,
       signKey: privateKeyPKCS8,
-      claims: { scope: scope },
       expiration: Math.floor(Date.now() / 1000 + 60 * 60),
     });
 

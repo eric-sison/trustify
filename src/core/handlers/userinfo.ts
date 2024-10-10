@@ -1,93 +1,15 @@
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
-import { bearerAuthToken } from "@trustify/core/middlewares/bearer-auth-token";
-import { UserRepository } from "@trustify/core/repositories/user-repository";
-import { TokenService } from "@trustify/core/services/token-service";
+import { BearerAuthMiddleware, userinfoAuth } from "@trustify/core/middlewares/userinfo-auth";
 import { Hono } from "hono";
 
-export const userInfoHandler = new Hono<HonoAppBindings>()
-  .post("/", bearerAuthToken, async (c) => {
-    const userRepository = new UserRepository();
+export const userInfoHandler = new Hono<HonoAppBindings & BearerAuthMiddleware>()
+  .post("/", userinfoAuth, async (c) => {
+    const claims = c.get("claims");
 
-    // @ts-expect-error - this is not type safe
-    const user = await userRepository.getUserById(c.get("subject"));
-
-    const birthdate = user.birthdate?.toISOString().split("T")[0];
-
-    const updatedAt = user.updatedAt.getTime();
-
-    const date = new Date(updatedAt); // Automatically converts to UTC
-
-    const secondsSinceEpoch = Math.floor(date.getTime() / 1000);
-
-    const userInfo = {
-      sub: user.id,
-      name: `${user.givenName} ${user.middleName} ${user.familyName}`,
-      given_name: user.givenName,
-      family_name: user.familyName,
-      middle_name: user.givenName,
-      nickname: user.nickname,
-      preferred_username: user.preferredUsername,
-      profile: user.profile,
-      picture: user.picture,
-      website: user.website,
-      email: user.email,
-      email_verified: user.emailVerified,
-      gender: user.gender,
-      birthdate: birthdate,
-      zoneinfo: user.zoneinfo,
-      locale: user.locale,
-      phone_number: user.phoneNumber,
-      phone_number_verified: user.phoneNumberVerified,
-      address: user.address,
-      updated_at: secondsSinceEpoch,
-    };
-
-    return c.json(userInfo);
+    return c.json(claims);
   })
-  .get("/", bearerAuthToken, async (c) => {
-    const userRepository = new UserRepository();
+  .get("/", userinfoAuth, async (c) => {
+    const claims = c.get("claims");
 
-    const tokenService = new TokenService();
-
-    // @ts-expect-error - this is not type safe
-    const payload = c.get("payload");
-
-    // @ts-expect-error - this is not type safe
-    const user = await userRepository.getUserById(payload.sub);
-
-    const birthdate = user.birthdate?.toISOString().split("T")[0];
-
-    const updatedAt = user.updatedAt.getTime();
-
-    const date = new Date(updatedAt); // Automatically converts to UTC
-
-    const secondsSinceEpoch = Math.floor(date.getTime() / 1000);
-
-    const userInfo = {
-      sub: user.id,
-      name: `${user.givenName} ${user.middleName} ${user.familyName}`,
-      given_name: user.givenName,
-      family_name: user.familyName,
-      middle_name: user.givenName,
-      nickname: user.nickname,
-      preferred_username: user.preferredUsername,
-      profile: user.profile,
-      picture: user.picture,
-      website: user.website,
-      email: user.email,
-      email_verified: user.emailVerified,
-      gender: user.gender,
-      birthdate: birthdate,
-      zoneinfo: user.zoneinfo,
-      locale: user.locale,
-      phone_number: user.phoneNumber,
-      phone_number_verified: user.phoneNumberVerified,
-      address: user.address,
-      updated_at: secondsSinceEpoch,
-    };
-
-    // @ts-expect-error - this is not type safe
-    const claims = tokenService.setClaimsFromScope(payload.scope, user);
-
-    return c.json({ ...claims, sub: userInfo.sub });
+    return c.json(claims);
   });
