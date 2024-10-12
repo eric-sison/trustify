@@ -6,6 +6,7 @@ import { AuthenticationService } from "@trustify/core/services/authentication-se
 import { requireAuth } from "@trustify/core/middlewares/require-auth";
 import { encodeUrl } from "@trustify/utils/encode-url";
 import { Hono } from "hono";
+import { setCookie } from "hono/cookie";
 
 export const authenticationHandler = new Hono<HonoAppBindings>()
 
@@ -21,13 +22,19 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
       const loginRequest = c.req.valid("query");
 
       // Initialize authentication service
-      const authenticationService = new AuthenticationService(c);
+      const authenticationService = new AuthenticationService();
 
       // Get the user from the credentials passed via the login form
       const user = await authenticationService.getUser(credentials);
 
       // Authenticate the user with the passed credentials from initialization
-      await authenticationService.authenticateUser(user);
+      const { name, value, attributes } = await authenticationService.authenticateUser(
+        user.id,
+        loginRequest.client_id,
+        c.req.raw.headers,
+      );
+
+      setCookie(c, name, value, attributes);
 
       // Generate the consent URL
       const consentUrl = encodeUrl({
@@ -43,7 +50,7 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
 
   .get("get-authentication-details", requireAuth, async (c) => {
     // Initialize authentication service
-    const authenticationService = new AuthenticationService(c);
+    const authenticationService = new AuthenticationService();
 
     // Get user and client details from current session
     const details = await authenticationService.getAuthenticationDetails(c.var.session);
@@ -57,7 +64,7 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
     const loginRequest = c.req.valid("query");
 
     // Initialize the authentication service
-    const authenticationService = new AuthenticationService(c);
+    const authenticationService = new AuthenticationService();
 
     // Generate authorization code and pass its payload
     const code = await authenticationService.generateAuthorizationCode({

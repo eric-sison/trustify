@@ -4,25 +4,21 @@ import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { lucia } from "@trustify/config/lucia";
-import { Context } from "hono";
-import { setCookie } from "hono/cookie";
-import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
-import { users } from "@trustify/db/schema/users";
 import { generateIdFromEntropySize, Session } from "lucia";
 import { SessionRepository } from "../repositories/session-repository";
 import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
 import { redisStore } from "@trustify/config/redis";
-import { userAgent } from "next/server";
 import { AuthCodePayloadSchema } from "../schemas/token-schema";
+import { userAgent } from "next/server";
 
 export class AuthenticationService {
-  constructor(private readonly context: Context<HonoAppBindings>) {}
+  constructor() {}
 
-  public async authenticateUser(user: typeof users.$inferSelect) {
+  public async authenticateUser(userId: string, clientId: string, details: Headers) {
     // Create a session object
-    const session = await lucia.createSession(user.id, {
-      clientId: this.context.req.query("client_id")!,
-      userAgent: userAgent(this.context.req.raw),
+    const session = await lucia.createSession(userId, {
+      clientId: clientId,
+      userAgent: userAgent({ headers: details }),
       signedInAt: new Date(),
     });
 
@@ -30,7 +26,8 @@ export class AuthenticationService {
     const sessionCookie = lucia.createSessionCookie(session.id);
 
     // Set the sessionCookie in the browser, passing in values from sessionCookie
-    setCookie(this.context, sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+    //setCookie(this.context, sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+    return sessionCookie;
   }
 
   public async getUser(credentials: z.infer<typeof LoginFormSchema>) {
@@ -104,14 +101,14 @@ export class AuthenticationService {
 
         // Handle redis erro
       } catch (error) {
-        // log the error
-        this.context.var.logger.error(error);
-
         // Throw error if storing state to redis has failed
         throw new OidcError({
           error: "redis_get_failed",
           message: "Failed to get value to redis store.",
           status: 500,
+
+          // @ts-expect-error error is of type unknown
+          stack: error.stack,
         });
       }
     }
@@ -142,14 +139,14 @@ export class AuthenticationService {
 
       // Handle redis error
     } catch (error) {
-      // log the error
-      this.context.var.logger.error(error);
-
       // Throw error if storing state to redis has failed
       throw new OidcError({
         error: "redis_set_failed",
         message: "Failed to set value to redis store.",
         status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
       });
     }
   }
