@@ -14,7 +14,7 @@ export const authorizationHandler = new Hono<HonoAppBindings>().get(
     const loginRequest = c.req.valid("query");
 
     // Initialize the authorization service
-    const authorizationService = new AuthorizationService(loginRequest, c);
+    const authorizationService = new AuthorizationService(loginRequest);
 
     // Get the client details from the database
     const client = await authorizationService.getClientFromAuthorizationURL();

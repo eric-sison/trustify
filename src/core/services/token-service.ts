@@ -5,19 +5,15 @@ import {
   RequestClaimSchema,
   ClaimsSchema,
 } from "@trustify/core/schemas/token-schema";
-import {
-  GenerateTokenOptions,
-  OidcScopes,
-  SupportedClaims,
-  UserClaims,
-} from "@trustify/core/types/tokens";
-import { SignJWT } from "jose";
+import { GenerateTokenOptions, UserClaims } from "@trustify/core/types/tokens";
+import { SupportedClaims, SupportedScopes } from "@trustify/core/types/oidc-supports";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { Nullable } from "@trustify/utils/nullable-type";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { redisStore } from "@trustify/config/redis";
+import { SignJWT } from "jose";
 import { z } from "zod";
 
 export class TokenService {
@@ -205,7 +201,7 @@ export class TokenService {
    * `phone_number`, `address`, `given_name`, `middle_name`, and `family_name`, with values populated
    * from the corresponding properties of the `user` object based on the specified scopes.
    */
-  private setDefaultClaims(scopes: Array<OidcScopes>, user: UserClaims) {
+  private setDefaultClaims(scopes: Array<SupportedScopes>, user: UserClaims) {
     // Initialize the value of the default claim. Initially, it is an empty object.
     const defaultClaims: Partial<Nullable<SupportedClaims>> = {};
 
@@ -338,7 +334,7 @@ export class TokenService {
     user: UserClaims,
   ) {
     // Split the scope string to extract the requested scopes
-    const requestedScopes = scope.split(" ") as Array<OidcScopes>;
+    const requestedScopes = scope.split(" ") as Array<SupportedScopes>;
 
     // Initialize the default claims based on the requested scopes
     const defaultClaims = this.setDefaultClaims(requestedScopes, user);

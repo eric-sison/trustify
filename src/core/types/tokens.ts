@@ -1,13 +1,8 @@
 import { type KeyLike } from "jose";
-import { z } from "zod";
-import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { Nullable } from "@trustify/utils/nullable-type";
 import { users } from "@trustify/db/schema/users";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
-
-export type OidcScopes = (typeof oidcDiscovery.scopes_supported)[number];
-
-export type OidcResponseType = (typeof oidcDiscovery.response_types_supported)[number];
+import { SupportedClaims } from "./oidc-supports";
 
 export type GenerateTokenOptions = {
   keyId: string | undefined;
@@ -26,29 +21,6 @@ export type GenerateTokenOptions = {
         "sub"
       >;
   expiration: number | undefined;
-};
-
-export type SupportedClaims = {
-  sub: string;
-  name: string;
-  given_name: string;
-  family_name: string;
-  middle_name: string;
-  nickname: string;
-  preferred_username: string;
-  profile: string;
-  picture: string;
-  website: string;
-  gender: string;
-  birthdate: string | undefined;
-  zoneinfo: string;
-  locale: string;
-  updated_at: number;
-  email: string;
-  email_verified: boolean;
-  phone_number: string;
-  phone_number_verified: boolean;
-  address: z.infer<typeof UserAddressSchema>;
 };
 
 export type UserClaims = Omit<

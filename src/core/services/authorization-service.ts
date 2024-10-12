@@ -3,20 +3,17 @@ import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { ClientRepository } from "@trustify/core/repositories/client-repository";
+import { SupportedResponseTypes, SupportedScopes } from "@trustify/core/types/oidc-supports";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";
-import { Context } from "hono";
-import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { clients } from "@trustify/db/schema/clients";
-import { OidcResponseType, OidcScopes } from "@trustify/core/types/tokens";
 import { z } from "zod";
+import pino from "pino";
+import pretty from "pino-pretty";
 
 export class AuthorizationService {
   // Construct the AuthorizationService class by requiring the loginRequest retrieved from the URL
-  constructor(
-    private readonly loginRequest: z.infer<typeof LoginRequestSchema>,
-    private readonly context: Context<HonoAppBindings>,
-  ) {}
+  constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
 
   public async verifyAuthorizationRequest(client: typeof clients.$inferInsert) {
     // Check if scopes are valid
@@ -62,8 +59,8 @@ export class AuthorizationService {
     const scopes = this.loginRequest?.scope?.split(" ") || [];
 
     // Utility function to check if a scope is a valid OIDC scope
-    const isValidScope = (scope: string): scope is OidcScopes => {
-      return oidcDiscovery.scopes_supported.includes(scope as OidcScopes);
+    const isValidScope = (scope: string): scope is SupportedScopes => {
+      return oidcDiscovery.scopes_supported.includes(scope as SupportedScopes);
     };
 
     // Verify that all requested scopes are supported both by the OIDC server and by the client
@@ -100,7 +97,7 @@ export class AuthorizationService {
 
       // Log a warning if redirect URI does not use HTTPS
       if (parsedUri.protocol !== "https") {
-        this.context.var.logger.warn(`Redirect URI (${parsedUri.origin}) is not encrypted!`);
+        pino(pretty()).warn(`Redirect URI (${parsedUri.origin}) is not encrypted!`);
       }
 
       // If the URL constructor throws an error, the URI is malformed
@@ -122,7 +119,7 @@ export class AuthorizationService {
 
     // Check if the response type is supported by the server
     const isValidResponseType = supportedTypes.includes(
-      this.loginRequest.response_type as OidcResponseType,
+      this.loginRequest.response_type as SupportedResponseTypes,
     );
 
     // Check if the client is allowed to use the specified response type
