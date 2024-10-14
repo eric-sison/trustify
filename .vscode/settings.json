@@ -1,0 +1,28 @@
+{
+  "restoreTerminals.terminals": [
+    {
+      "splitTerminals": [
+        {
+          "name": "trustify-app",
+          "commands": ["npm run dev"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "drizzle-studio",
+          "commands": ["npm run studio"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "redis-store",
+          "commands": ["docker exec -it trustify-redis redis-cli -a redis_password"]
+        }
+      ]
+    }
+  ]
+}
