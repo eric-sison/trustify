@@ -17,7 +17,7 @@ import {
 import { Label } from "@trustify/components/ui/Label";
 import Link from "next/link";
 import { PasswordInput } from "@trustify/components/ui/PasswordInput";
-import { Alert, AlertDescription } from "../../ui/Alert";
+import { Alert, AlertDescription } from "@trustify/components/ui/Alert";
 import { Input } from "@trustify/components/ui/Input";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 import { Button } from "@trustify/components/ui/Button";

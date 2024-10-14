@@ -1,15 +1,14 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { rpcClient } from "@trustify/core/libs/rpc-client";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
+import { rpcClient } from "@trustify/core/libs/rpc-client";
+import { OidcError } from "@trustify/core/types/oidc-error";
+import { Button } from "@trustify/components/ui/Button";
 import { InferRequestType, InferResponseType } from "hono";
-
-import { ApiError } from "next/dist/server/api-utils";
-import { useRouter } from "next/navigation";
 import { FunctionComponent, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
-import { Button } from "../../ui/Button";
 
 type OidcConsentFormProps = {
   loginRequest: z.infer<typeof LoginRequestSchema>;
@@ -42,7 +41,7 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
 
   const authorize = useMutation<
     InferResponseType<typeof $authorize>,
-    ApiError,
+    OidcError,
     InferRequestType<typeof $authorize>["query"]
   >({
     mutationKey: ["authorize_client"],
