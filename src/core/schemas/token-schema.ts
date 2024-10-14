@@ -1,13 +1,19 @@
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { ID_LENGTH } from "@trustify/utils/constants";
-import { z } from "zod";
+import { z, ZodLiteral } from "zod";
+import { SupportedGrantTypes } from "../types/oidc-supports";
 
 export const TokenHeaderSchema = z.object({
   authorization: z.string().optional(),
 });
 
 export const TokenBodySchema = z.object({
-  grant_type: z.string(),
+  grant_type: z.union(
+    oidcDiscovery.grant_types_supported.map((type) => z.literal(type)) as [
+      ZodLiteral<SupportedGrantTypes>,
+      ZodLiteral<SupportedGrantTypes>,
+    ],
+  ),
   code: z.string(),
   client_id: z.string().length(ID_LENGTH).optional(),
   client_secret: z.string().optional(),

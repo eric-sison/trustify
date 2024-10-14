@@ -6,6 +6,11 @@ export type SupportedScopes = (typeof oidcDiscovery.scopes_supported)[number];
 
 export type SupportedResponseTypes = (typeof oidcDiscovery.response_types_supported)[number];
 
+export type SupportedGrantTypes = (typeof oidcDiscovery.grant_types_supported)[number];
+
+export type SupportedTokenEndpointAuthMethods =
+  (typeof oidcDiscovery.token_endpoint_auth_methods_supported)[number];
+
 export type SupportedClaims = {
   sub: string;
   name: string;

@@ -56,11 +56,10 @@ export const oidcDiscovery = {
     // "HS256",
     // "ES256"
   ] as const,
-  grant_types_supported: ["authorization_code"] as const,
+  grant_types_supported: ["authorization_code", "refresh_token"] as const,
   token_endpoint_auth_methods_supported: [
     "client_secret_basic",
     "client_secret_post",
-    "none",
 
     // TODO: implement this
     // "private_key_jwt"

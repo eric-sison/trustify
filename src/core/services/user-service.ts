@@ -2,7 +2,7 @@ import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
 
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  private readonly userRepository = new UserRepository();
 
   public async getUser(userId: string) {
     // Get the user by ID

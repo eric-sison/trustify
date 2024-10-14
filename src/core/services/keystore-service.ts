@@ -6,18 +6,21 @@ import { exportJWK, importPKCS8, importSPKI } from "jose";
 import { OidcError } from "@trustify/core/types/oidc-error";
 
 export class KeyStoreService {
+  private readonly keyStoreRepository = new KeyStoreRepository();
+
   private readonly algorithm = "aes-256-cbc";
 
   private readonly ivLength = 16;
-
-  constructor(private readonly keyStoreRepository: KeyStoreRepository) {}
 
   public async extractKeysFromCurrent() {
     // get the private key by clientId and status equals to "current"
     const key = await this.keyStoreRepository.getKeyByStatus("current");
 
     // decrypt the encryption key to decrypt the private_key
-    const decryptedEncryptionKey = this.decryptKey(key.encryptionKey, appConfig.masterKeyEncryptionSecret);
+    const decryptedEncryptionKey = this.decryptKey(
+      key.encryptionKey,
+      appConfig.masterKeyEncryptionSecret,
+    );
 
     // decrypt the private_key using the decrypted encryption key
     const decryptedPrivateKey = this.decryptKey(key.privateKey, decryptedEncryptionKey);

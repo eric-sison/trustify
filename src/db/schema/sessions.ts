@@ -14,12 +14,12 @@ export const sessions = pgTable("sessions", {
     .notNull()
     .references(() => clients.id),
   userAgent: jsonb("user_agent").$type<ReturnType<typeof userAgent>>(),
-  signedInAt: timestamp("last_signin_at", {
-    withTimezone: true,
-    mode: "date",
-  }),
   expiresAt: timestamp("expires_at", {
     withTimezone: true,
     mode: "date",
   }).notNull(),
+  signedInAt: timestamp("last_signin_at", {
+    withTimezone: true,
+    mode: "date",
+  }),
 });

@@ -1,122 +1,91 @@
 import {
   AuthCodePayloadSchema,
-  TokenHeaderSchema,
   TokenBodySchema,
   RequestClaimSchema,
   ClaimsSchema,
 } from "@trustify/core/schemas/token-schema";
+import { ClientService } from "@trustify/core/services/client-service";
 import { GenerateTokenOptions, UserClaims } from "@trustify/core/types/tokens";
 import { SupportedClaims, SupportedScopes } from "@trustify/core/types/oidc-supports";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { Nullable } from "@trustify/utils/nullable-type";
 import { OidcError } from "@trustify/core/types/oidc-error";
-import { ClientRepository } from "@trustify/core/repositories/client-repository";
-import { verifyHash } from "@trustify/utils/hash-fns";
 import { redisStore } from "@trustify/config/redis";
 import { SignJWT } from "jose";
 import { z } from "zod";
 
 export class TokenService {
-  constructor() {}
+  private readonly clientService = new ClientService();
 
-  public async handleClientAuthMethod(
-    codeChallenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
-    tokenRequest: z.infer<typeof TokenBodySchema>,
-    authorizationHeader: z.infer<typeof TokenHeaderSchema>["authorization"],
+  public async handleClientSecretBasic(
+    authorizationHeader: string | undefined,
+    challenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
+    verifier: z.infer<typeof TokenBodySchema>["code_verifier"],
   ) {
-    // Extract the authorization header from the request
-    //const authHeader = this.tokenHeader.authorization;
-
-    // Check if auth method is client_auth_basic
+    // Check if authorization header is not undefined and if its value has 'Basic'
     if (authorizationHeader && authorizationHeader.split(" ")[0] === "Basic") {
-      // If so, handle the client authentication
-      const client = await this.handleClientAuthBasic(authorizationHeader);
+      // If so, get the encoded client credentials from the header
+      const encodedCredentials = authorizationHeader.split(" ")[1];
 
-      // Handle code_challenge and code_verifier matching
-      await this.handlePKCE(codeChallenge, tokenRequest.code_verifier);
+      // Extract the credentials by decoding it
+      const { clientId, secret } = this.extractCredentials(encodedCredentials);
 
-      // Return the client
+      // Verify if the client credentials are valid
+      const client = await this.clientService.verifyClientCredentials(clientId, secret);
+
+      await this.handlePKCE(challenge, verifier);
+
+      // Otherwise, return the client
       return client;
     }
 
-    // Check if auth method is client_auth_post
-    if (tokenRequest.client_secret) {
-      // Verify client credentials if valid
-      const client = await this.verifyClient(tokenRequest.client_id!, tokenRequest.client_secret);
+    throw new OidcError({
+      error: "unsupported_client_auth_method",
+      message: "Make sure authorization header is valid.",
+      status: 400,
+    });
+  }
 
-      // Return the client
-      return client;
+  public async handleClientSecretPost(clientId: string | undefined, secret: string | undefined) {
+    if (!clientId || !secret) {
+      throw new OidcError({
+        error: "unsupported_client_auth_method",
+        message: "Make sure client_id and secret is provided in the request body.",
+        status: 400,
+      });
     }
+
+    // Verify client credentials if valid
+    const client = await this.clientService.verifyClientCredentials(clientId!, secret);
+
+    // Return the client
+    return client;
   }
 
   private async handlePKCE(
     codeChallenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
     codeVerifier: z.infer<typeof TokenBodySchema>["code_verifier"],
   ) {
-    // Check if the request to /token has code_verifier
-    if (codeVerifier) {
-      // Hash the code verifier to see if it matches with the stored code_challenge
-      const hashedCode = await this.hashCodeVerifier(codeVerifier);
-
-      // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
-      if (hashedCode !== codeChallenge) {
-        throw new OidcError({
-          error: "invalid_code",
-          message: "Code challenge and verifier don't match",
-          description: "Code challenge and verifier don't match",
-          status: 400,
-        });
-      }
-    }
-  }
-
-  private async handleClientAuthBasic(authHeader: string | undefined) {
-    // Check if authorization header is not undefined and if its value has 'Basic'
-    if (authHeader && authHeader.split(" ")[0] === "Basic") {
-      // If so, get the encoded client credentials from the header
-      const encoded = authHeader.split(" ")[1];
-
-      // Extract the credentials by decoding it
-      const { clientId, secret } = this.extractCredentials(encoded);
-
-      // Verify if the client credentials are valid
-      const client = await this.verifyClient(clientId, secret);
-
-      // Otherwise, return the client
-      return client;
-    }
-  }
-
-  private async verifyClient(clientId: string, secret: string) {
-    // Initialize clientRepository to interact with the database
-    const clientRepository = new ClientRepository();
-
-    // Get the client by ID
-    const client = await clientRepository.getClientById(clientId);
-
-    // If there is no client matching the ID, throw an error
-    if (!client) {
+    if (!codeVerifier) {
       throw new OidcError({
-        error: "invalid_client",
-        message: "Invalid client credentials!",
-        status: 401,
+        error: "no_code_verifier",
+        message: "Authorization flow with PKCE requires code_verifier",
+        status: 400,
       });
     }
 
-    // Otherwise, check if client secret matches with the hashed secret stored in the database
-    const isSecretValid = await verifyHash(client.secret, secret);
+    // Hash the code verifier to see if it matches with the stored code_challenge
+    const hashedCode = await this.hashCodeVerifier(codeVerifier);
 
-    // If not, throw an error
-    if (!isSecretValid) {
+    // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
+    if (hashedCode !== codeChallenge) {
       throw new OidcError({
-        error: "invalid_client",
-        message: "Invalid client credentials!",
-        status: 401,
+        error: "pkce_error",
+        message: "Code challenge and verifier don't match",
+        description: "Code challenge and verifier don't match",
+        status: 400,
       });
     }
-
-    // Otherwise, return the client
-    return client;
   }
 
   private extractCredentials(base64: string) {
@@ -185,7 +154,7 @@ export class TokenService {
       return base64Hash;
     } catch (error) {
       throw new OidcError({
-        error: "invalid_code",
+        error: "code_verifier_error",
         message: "Code verifier might be malformed.",
         status: 400,
 
@@ -328,7 +297,7 @@ export class TokenService {
   }
 
   public getClaims(
-    destination: "id_token" | "userinfo",
+    claimsFor: "id_token" | "userinfo",
     claims: string | undefined,
     scope: string,
     user: UserClaims,
@@ -348,12 +317,12 @@ export class TokenService {
       const requestedClaims = JSON.parse(claims) as z.infer<typeof ClaimsSchema>;
 
       // Check if request has essential claims set for id_token
-      if (requestedClaims.id_token && destination === "id_token") {
+      if (requestedClaims.id_token && claimsFor === "id_token") {
         essentialClaims = this.setEssentialClaims(requestedClaims.id_token, user);
       }
 
       // Check if request has essential claims set for userinfo
-      if (requestedClaims.userinfo && destination === "userinfo") {
+      if (requestedClaims.userinfo && claimsFor === "userinfo") {
         essentialClaims = this.setEssentialClaims(requestedClaims.userinfo, user);
       }
     }
