@@ -19,7 +19,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     const { authorization } = c.req.valid("header");
 
     // Validate form from request
-    const { code, grant_type, client_id, client_secret, code_verifier } = c.req.valid("form");
+    const { code, grant_type, client_id, client_secret, code_verifier, refresh_token } = c.req.valid("form");
 
     // Initialize token service
     const tokenService = new TokenService();
@@ -30,29 +30,35 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     // Initialize user service
     const userService = new UserService();
 
+    // Get the payload from store using the supplied code
+    const payload = await tokenService.getAuthCodePayload(code);
+
+    // Handle grant_type=authorization_code
     if (grant_type === "authorization_code") {
-      // Initialize keystore service
-      const keyStoreService = new KeyStoreService();
-
-      // Get the payload from store using the supplied code
-      const { userId, codeChallenge, nonce, scope, claims } =
-        await tokenService.getAuthCodePayload(code);
-
+      // Get the token_endpoint_auth_method from the database
       const clientAuthMethod = await clientService.getClientAuthMethod(client_id);
 
       // Handle the token endpoint auth method, depending on the client's request
       // Return the verified client from the credentials passed in the request
       const client =
         clientAuthMethod === "client_secret_basic"
-          ? await tokenService.handleClientSecretBasic(authorization, codeChallenge, code_verifier)
+          ? await tokenService.handleClientSecretBasic(authorization, payload.code_challenge, code_verifier)
           : await tokenService.handleClientSecretPost(client_id, client_secret);
 
       // Get the user details from database using the stored userId in the payload
-      const user = await userService.getUser(userId);
+      const user = await userService.getUserById(payload.userId);
+
+      // Initialize keystore service
+      const keyStoreService = new KeyStoreService();
 
       // Extract the keys from keystore with status "current"
       // This ensures that the server is signning new tokens using the latest key
       const { privateKeyPKCS8, publicKey } = await keyStoreService.extractKeysFromCurrent();
+
+      // TODO: Test this out
+      const idTokenClaims = oidcDiscovery.claims_supported
+        ? tokenService.getClaims("id_token", payload.claims, payload.scope, user)
+        : {};
 
       // Generate the id_token based on the parameters acquired from previous steps
       const idToken = await tokenService.generateToken({
@@ -62,11 +68,11 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
         signKey: privateKeyPKCS8,
         expiration: Math.floor(Date.now() / 1000 + 60 * 60), // 1 hr
         claims: {
-          nonce: nonce,
+          nonce: payload.nonce,
           auth_time: Math.floor(Date.now() / 1000),
 
           // Get claims for id_token
-          ...tokenService.getClaims("id_token", claims, scope, user),
+          ...idTokenClaims,
         },
       });
 
@@ -93,13 +99,22 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     }
 
     // TODO: implement refresh token
-    if (grant_type === "refresh_token") {
+    else if (grant_type === "refresh_token") {
       // Make sure client_id and client_secret is not undefined
       if (!client_id || !client_secret) {
         throw new OidcError({
           error: "invalid_client",
           message: "Client not found!",
           status: 401,
+        });
+      }
+
+      // Make sure there is a refresh_token in the request body
+      if (!refresh_token) {
+        throw new OidcError({
+          error: "missing_refresh_token",
+          message: "Please make sure you're passing the correct refresh token",
+          status: 400,
         });
       }
 

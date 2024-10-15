@@ -113,9 +113,7 @@ export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="select-none">
-                      Please enter your password.
-                    </FormDescription>
+                    <FormDescription className="select-none">Please enter your password.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

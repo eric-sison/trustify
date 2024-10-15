@@ -19,7 +19,7 @@ export class TokenService {
 
   public async handleClientSecretBasic(
     authorizationHeader: string | undefined,
-    challenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
+    challenge: z.infer<typeof AuthCodePayloadSchema>["code_challenge"],
     verifier: z.infer<typeof TokenBodySchema>["code_verifier"],
   ) {
     // Check if authorization header is not undefined and if its value has 'Basic'
@@ -62,46 +62,6 @@ export class TokenService {
     return client;
   }
 
-  private async handlePKCE(
-    codeChallenge: z.infer<typeof AuthCodePayloadSchema>["codeChallenge"],
-    codeVerifier: z.infer<typeof TokenBodySchema>["code_verifier"],
-  ) {
-    if (!codeVerifier) {
-      throw new OidcError({
-        error: "no_code_verifier",
-        message: "Authorization flow with PKCE requires code_verifier",
-        status: 400,
-      });
-    }
-
-    // Hash the code verifier to see if it matches with the stored code_challenge
-    const hashedCode = await this.hashCodeVerifier(codeVerifier);
-
-    // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
-    if (hashedCode !== codeChallenge) {
-      throw new OidcError({
-        error: "pkce_error",
-        message: "Code challenge and verifier don't match",
-        description: "Code challenge and verifier don't match",
-        status: 400,
-      });
-    }
-  }
-
-  private extractCredentials(base64: string) {
-    // Decode the base64 client credentials and split by token ':'
-    const decodedString = this.decodeBase64(base64).split(":");
-
-    // Assign first element in the array as the clientId
-    const clientId = decodedString[0];
-
-    // Assign the second element in the array as the secret
-    const secret = decodedString[1];
-
-    // Return the extracted credentials
-    return { clientId, secret };
-  }
-
   public async getAuthCodePayload(code: string) {
     // Get the stored request from the authorization code issued by the server
     const requestDetails = await redisStore.get(code);
@@ -131,6 +91,74 @@ export class TokenService {
       });
     }
   }
+
+  public getClaims(
+    claimsFor: "id_token" | "userinfo",
+    claims: string | undefined,
+    scope: string,
+    user: UserClaims,
+  ) {
+    // Split the scope string to extract the requested scopes
+    const requestedScopes = scope.split(" ") as Array<SupportedScopes>;
+
+    // Initialize the default claims based on the requested scopes
+    const defaultClaims = this.setDefaultClaims(requestedScopes, user);
+
+    // Initialize essential claims as an empty object
+    let essentialClaims: Partial<Nullable<SupportedClaims>> = {};
+
+    // Check if claims is present in the request url
+    if (claims) {
+      // If so, parse the string to extract the requested claims
+      const requestedClaims = JSON.parse(claims) as z.infer<typeof ClaimsSchema>;
+
+      // Check if request has essential claims set for id_token
+      if (requestedClaims.id_token && claimsFor === "id_token") {
+        essentialClaims = this.setEssentialClaims(requestedClaims.id_token, user);
+      }
+
+      // Check if request has essential claims set for userinfo
+      if (requestedClaims.userinfo && claimsFor === "userinfo") {
+        essentialClaims = this.setEssentialClaims(requestedClaims.userinfo, user);
+      }
+    }
+
+    return {
+      ...defaultClaims,
+      ...essentialClaims,
+    } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
+  }
+
+  public async generateToken(options: GenerateTokenOptions) {
+    try {
+      return await new SignJWT({
+        iss: oidcDiscovery.issuer,
+        sub: options.subject,
+        aud: options.audience,
+        ...options?.claims,
+        exp: options.expiration,
+        nbf: Math.floor(Date.now() / 1000),
+        iat: Math.floor(Date.now() / 1000),
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "RS256",
+          kid: options.keyId,
+        })
+        .sign(options.signKey);
+    } catch (error) {
+      throw new OidcError({
+        error: "invalid_id_token",
+        message: "Unable to generate id_token",
+        status: 400,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
+  public buildTokenResponse() {}
 
   private async hashCodeVerifier(codeVerifier: string) {
     try {
@@ -162,6 +190,46 @@ export class TokenService {
         stack: error.stack,
       });
     }
+  }
+
+  private async handlePKCE(
+    codeChallenge: z.infer<typeof AuthCodePayloadSchema>["code_challenge"],
+    codeVerifier: z.infer<typeof TokenBodySchema>["code_verifier"],
+  ) {
+    if (!codeVerifier || !codeChallenge) {
+      throw new OidcError({
+        error: "invalid_pkce_code",
+        message: "Missing required codes for authorization flow with PKCE",
+        status: 400,
+      });
+    }
+
+    // Hash the code verifier to see if it matches with the stored code_challenge
+    const hashedCode = await this.hashCodeVerifier(codeVerifier);
+
+    // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
+    if (hashedCode !== codeChallenge) {
+      throw new OidcError({
+        error: "pkce_error",
+        message: "Code challenge and verifier don't match",
+        description: "Code challenge and verifier don't match",
+        status: 400,
+      });
+    }
+  }
+
+  private extractCredentials(base64: string) {
+    // Decode the base64 client credentials and split by token ':'
+    const decodedString = this.decodeBase64(base64).split(":");
+
+    // Assign first element in the array as the clientId
+    const clientId = decodedString[0];
+
+    // Assign the second element in the array as the secret
+    const secret = decodedString[1];
+
+    // Return the extracted credentials
+    return { clientId, secret };
   }
 
   /**
@@ -294,72 +362,6 @@ export class TokenService {
     }
 
     return essentialClaims;
-  }
-
-  public getClaims(
-    claimsFor: "id_token" | "userinfo",
-    claims: string | undefined,
-    scope: string,
-    user: UserClaims,
-  ) {
-    // Split the scope string to extract the requested scopes
-    const requestedScopes = scope.split(" ") as Array<SupportedScopes>;
-
-    // Initialize the default claims based on the requested scopes
-    const defaultClaims = this.setDefaultClaims(requestedScopes, user);
-
-    // Initialize essential claims as an empty object
-    let essentialClaims: Partial<Nullable<SupportedClaims>> = {};
-
-    // Check if claims is present in the request url
-    if (claims) {
-      // If so, parse the string to extract the requested claims
-      const requestedClaims = JSON.parse(claims) as z.infer<typeof ClaimsSchema>;
-
-      // Check if request has essential claims set for id_token
-      if (requestedClaims.id_token && claimsFor === "id_token") {
-        essentialClaims = this.setEssentialClaims(requestedClaims.id_token, user);
-      }
-
-      // Check if request has essential claims set for userinfo
-      if (requestedClaims.userinfo && claimsFor === "userinfo") {
-        essentialClaims = this.setEssentialClaims(requestedClaims.userinfo, user);
-      }
-    }
-
-    return {
-      ...defaultClaims,
-      ...essentialClaims,
-    } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
-  }
-
-  public async generateToken(options: GenerateTokenOptions) {
-    try {
-      return await new SignJWT({
-        iss: oidcDiscovery.issuer,
-        sub: options.subject,
-        aud: options.audience,
-        ...options?.claims,
-        exp: options.expiration,
-        nbf: Math.floor(Date.now() / 1000),
-        iat: Math.floor(Date.now() / 1000),
-      })
-        .setProtectedHeader({
-          typ: "JWT",
-          alg: "RS256",
-          kid: options.keyId,
-        })
-        .sign(options.signKey);
-    } catch (error) {
-      throw new OidcError({
-        error: "invalid_id_token",
-        message: "Unable to generate id_token",
-        status: 400,
-
-        // @ts-expect-error error is of type unknown
-        stack: error.stack,
-      });
-    }
   }
 
   private decodeBase64(base64String: string) {

@@ -1,17 +1,23 @@
-import { STATE_LENGTH } from "@trustify/utils/constants";
+import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { OidcError } from "@trustify/core/types/oidc-error";
-import { ClientRepository } from "@trustify/core/repositories/client-repository";
 import { SupportedResponseTypes, SupportedScopes } from "@trustify/core/types/oidc-supports";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";
 import { clients } from "@trustify/db/schema/clients";
+import { AuthCodePayloadSchema } from "../schemas/token-schema";
+import { encodeUrl } from "@trustify/utils/encode-url";
+import { Environment } from "@trustify/config/environment";
 import { z } from "zod";
-import pino from "pino";
 import pretty from "pino-pretty";
+import pino from "pino";
+import { SessionService } from "./session-service";
 
 export class AuthorizationService {
+  // Initialize environment config for reuse
+  private readonly config = Environment.getPublicConfig();
+
   // Construct the AuthorizationService class by requiring the loginRequest retrieved from the URL
   constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
 
@@ -27,31 +33,162 @@ export class AuthorizationService {
 
     // Check if code_challenge_method is valid if code_challenge is provided
     this.verifyCodeChallengeMethod();
-
-    // Generate a random string and associate it to the original state from request URL
-    const opaqueState = await this.saveStateAsOpaque();
-
-    return opaqueState;
   }
 
-  public async getClientFromAuthorizationURL() {
-    // Initialize clientRepository to interact with the database
-    const clientRepository = new ClientRepository();
+  public async generateAuthorizationCode(payload: z.infer<typeof AuthCodePayloadSchema>) {
+    // Validate the payload before storing in redis
+    const validatedPayload = AuthCodePayloadSchema.safeParse(payload);
 
-    // Get the client from the database by the client_id from loginRequest
-    const client = await clientRepository.getClientById(this.loginRequest.client_id);
-
-    // Throw an error if client is not found
-    if (!client) {
+    // Throw an error if payload is not valid
+    if (!validatedPayload.success) {
       throw new OidcError({
-        error: "invalid_client",
-        message: "Client not found!",
-        status: 404,
+        error: "code_payload_malformed",
+        message: "Make sure your authorization code's payload is valid.",
+        status: 400,
       });
     }
 
-    // Otherwise, return the client
-    return client;
+    try {
+      // Generate authorization code
+      const authorizationCode = `auc_${generateIdFromEntropySize(AUTH_CODE_LENGTH)}`;
+
+      // Attempt to store it in redis
+      await redisStore.set(authorizationCode, JSON.stringify(validatedPayload.data), "EX", 60 * 5);
+
+      // Return the generated authorization code
+      return authorizationCode;
+
+      // Handle redis error
+    } catch (error) {
+      // Throw error if storing state to redis has failed
+      throw new OidcError({
+        error: "redis_set_failed",
+        message: "Failed to set value to redis store.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
+  public async redirectFromAuthorizationEndpoint(sessionId: string | undefined) {
+    // Check if the client supplied a prompt parameter in the authorization request
+    if (this.loginRequest.prompt) {
+      // If loginRequest.prompt contains 'login', it will force the user to reauthenticate,
+      // even with active session, by constructing a URL for redirection to the
+      // login page with additional parameters.
+      if (this.loginRequest.prompt.includes("login")) {
+        // Construct the URL and redirect to /login, passing all the
+        // loginRequest parameters, which will trigger the rendering of login form,
+        // forcing the user to reauthenticate.
+        return encodeUrl({
+          base: this.config.adminHost,
+          path: "/login",
+          params: this.loginRequest,
+        });
+
+        // Check if the loginRequest.prompt property is equal to "consent". If the condition is
+        // true, the code constructs a URL by encoding the parameters using the `encodeUrl` function.
+        // The URL is built with the base URL from the public configuration's admin host, the path
+        // "/consent", and additional parameters including the `loginRequest` object and the `state`
+        // variable. Finally, the constructed URL is returned.
+      } else if (this.loginRequest.prompt === "consent") {
+        // Redirect to the /consent page, passing all the loginRequest parameters.
+        // If there is an active session, the consent form will render. Otherwise,
+        // the user-agent will be redirected back to the login page.
+        return encodeUrl({
+          base: this.config.adminHost,
+          path: "/consent",
+          params: this.loginRequest,
+        });
+      }
+
+      // Checks if the `loginRequest.prompt` property is equal to "none". If it is, the code
+      // then checks if there is no active session (`!session`). If there is no active session,
+      // it throws an unauthorized error using the `OidcError` class with
+      // specific error details such as error type, message, and status code (401). This code is
+      // part of a login/authentication flow where it enforces authorization checks based on
+      // the presence of an active session.
+      else if (this.loginRequest.prompt === "none") {
+        // Check if there is no active session
+        if (!sessionId) {
+          // If so, throw an unauthorized error
+          throw new OidcError({
+            error: "unauthorized",
+            message: "You are not authorized to perform this action.",
+            status: 401,
+          });
+        }
+
+        // Initializr authenticationService
+        const sessionService = new SessionService();
+
+        // Get the details of the currently active session
+        const { userId } = await sessionService.getSessionDetails(sessionId);
+
+        // Handle response_types
+        if (this.loginRequest.response_type === "code") {
+          return await this.authorizationCodeFlow(userId);
+        }
+
+        if (this.loginRequest.response_type === "code token") {
+          // TODO: Implement flow
+          return await this.hybridFlowCodeToken();
+        }
+
+        if (this.loginRequest.response_type === "code id_token") {
+          // TODO: Implement flow
+          return await this.hybridFlowCodeIdToken();
+        }
+
+        if (this.loginRequest.response_type === "code id_token token") {
+          // TODO: Implement flow
+          return await this.hybridFlowCodeIdTokenToken();
+        }
+      }
+
+      // Throw an error if the user passed an unsupported prompt during authorization.
+      else {
+        throw new OidcError({
+          error: "unsupported_prompt",
+          message: "Authentication prompt is not supported.",
+          status: 400,
+        });
+      }
+    }
+
+    return encodeUrl({
+      base: this.config.adminHost,
+      path: "/login",
+      params: this.loginRequest,
+    });
+  }
+
+  public async authorizationCodeFlow(userId: string) {
+    const code = await this.generateAuthorizationCode({ userId, ...this.loginRequest });
+
+    const redirectUri = encodeUrl({
+      base: this.loginRequest.redirect_uri,
+      params: {
+        code,
+        state: this.loginRequest.state,
+      },
+    });
+
+    return redirectUri;
+  }
+
+  public async hybridFlowCodeIdToken() {
+    return "";
+  }
+
+  public async hybridFlowCodeToken() {
+    return "";
+  }
+
+  public async hybridFlowCodeIdTokenToken() {
+    return "";
   }
 
   private verifyScopes(clientScopes: string[]) {
@@ -128,7 +265,7 @@ export class AuthorizationService {
     // Throw an error if the response type is invalid or not allowed
     if (!isValidResponseType || !isAllowedForClient) {
       throw new OidcError({
-        error: "invalid_response_type",
+        error: "unsupported_response_type",
         message: "The supplied response_type is not valid.",
         status: 400,
       });
@@ -143,35 +280,6 @@ export class AuthorizationService {
         message: "When code_challenge is provided, code_challenge_method is also required",
         status: 400,
       });
-    }
-  }
-
-  private async saveStateAsOpaque() {
-    // Only execute this function if state is not undefined
-    if (this.loginRequest.state) {
-      try {
-        // Generate a random ID that will be associated with the state
-        // before storing it in the redis store
-        const opaqueState = `stq_${generateIdFromEntropySize(STATE_LENGTH)}`;
-
-        // Store the opaqueState in the redis store
-        await redisStore.set(opaqueState, this.loginRequest.state, "EX", 60 * 15);
-
-        // Return the generated state
-        return opaqueState;
-
-        // Throw an error if something went wrong in trying to store the state in the redis
-      } catch (error) {
-        // Throw error if storing state to redis has failed
-        throw new OidcError({
-          error: "redis_set_failed",
-          message: "Failed to set value to redis store.",
-          status: 500,
-
-          // @ts-expect-error error is of type unknown
-          stack: error.stack,
-        });
-      }
     }
   }
 }

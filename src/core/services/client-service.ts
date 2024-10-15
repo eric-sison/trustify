@@ -5,6 +5,23 @@ import { verifyHash } from "@trustify/utils/hash-fns";
 export class ClientService {
   private readonly clientRepository = new ClientRepository();
 
+  public async getClientById(clientId: string) {
+    // Get the client from the database by the client_id from loginRequest
+    const client = await this.clientRepository.getClientById(clientId);
+
+    // Throw an error if client is not found
+    if (!client) {
+      throw new OidcError({
+        error: "invalid_client",
+        message: "Client not found!",
+        status: 404,
+      });
+    }
+
+    // Otherwise, return the client
+    return client;
+  }
+
   public async getClientAuthMethod(clientId: string | undefined) {
     if (!clientId) {
       throw new OidcError({
@@ -28,9 +45,6 @@ export class ClientService {
   }
 
   public async verifyClientCredentials(clientId: string, secret: string) {
-    // Initialize clientRepository to interact with the database
-    // const clientRepository = new ClientRepository();
-
     // Get the client by ID
     const client = await this.clientRepository.getClientById(clientId);
 

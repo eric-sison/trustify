@@ -4,7 +4,7 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 export class UserService {
   private readonly userRepository = new UserRepository();
 
-  public async getUser(userId: string) {
+  public async getUserById(userId: string) {
     // Get the user by ID
     const user = await this.userRepository.getUserById(userId);
 

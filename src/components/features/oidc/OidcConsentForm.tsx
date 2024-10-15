@@ -57,7 +57,7 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
       return await res.json();
     },
     onSuccess: (data) => {
-      router.push(data.redirectUri);
+      router.push(data.url);
     },
     onError: (err) => {
       // TODO: implement error handling

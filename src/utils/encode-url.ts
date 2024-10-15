@@ -1,7 +1,7 @@
 type Url = {
   base: string;
   path?: string;
-  params?: Record<string, string | undefined>;
+  params?: Record<string, string | boolean | undefined>;
 };
 
 export function encodeUrl(url: Url): string {

@@ -1,20 +1,12 @@
-import { appConfig } from "@trustify/config/environment";
+import { Environment } from "./environment";
 
 export const oidcDiscovery = {
-  issuer: `${appConfig.adminHost}`,
-  authorization_endpoint: `${appConfig.adminHost}/api/v1/authorization`,
-  token_endpoint: `${appConfig.adminHost}/api/v1/token`,
-  jwks_uri: `${appConfig.adminHost}/api/v1/.well-known/jwks.json`,
-  userinfo_endpoint: `${appConfig.adminHost}/api/v1/userinfo`,
-  response_types_supported: [
-    "code",
-
-    // TODO: other response types to be implemented
-    // "code id_token",
-    // "code token",
-    // "code id_token token",
-    // "id_token token"
-  ] as const,
+  issuer: `${Environment.getPublicConfig().adminHost}`,
+  authorization_endpoint: `${Environment.getPublicConfig().adminHost}/api/v1/authorization`,
+  token_endpoint: `${Environment.getPublicConfig().adminHost}/api/v1/token`,
+  jwks_uri: `${Environment.getPublicConfig().adminHost}/api/v1/.well-known/jwks.json`,
+  userinfo_endpoint: `${Environment.getPublicConfig().adminHost}/api/v1/userinfo`,
+  response_types_supported: ["code", "code id_token", "code token", "code id_token token"] as const,
   claims_parameter_supported: true,
   claims_supported: [
     "sub",

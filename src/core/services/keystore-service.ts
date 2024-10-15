@@ -1,68 +1,111 @@
 import { createCipheriv, createDecipheriv, createHash, generateKeyPairSync, randomBytes } from "crypto";
 import { KeyStoreRepository } from "@trustify/core/repositories/keystore-repository";
 import { generateIdFromEntropySize } from "lucia";
-import { appConfig } from "@trustify/config/environment";
 import { exportJWK, importPKCS8, importSPKI } from "jose";
 import { OidcError } from "@trustify/core/types/oidc-error";
+import { Environment } from "@trustify/config/environment";
 
 export class KeyStoreService {
+  // Initialize keyStoreRepository
   private readonly keyStoreRepository = new KeyStoreRepository();
 
+  // Initialize encryption algorithm
   private readonly algorithm = "aes-256-cbc";
 
+  // Initialize IV Length
   private readonly ivLength = 16;
 
   public async extractKeysFromCurrent() {
-    // get the private key by clientId and status equals to "current"
-    const key = await this.keyStoreRepository.getKeyByStatus("current");
+    try {
+      // get the private key by clientId and status equals to "current"
+      const key = await this.keyStoreRepository.getKeyByStatus("current");
 
-    // decrypt the encryption key to decrypt the private_key
-    const decryptedEncryptionKey = this.decryptKey(
-      key.encryptionKey,
-      appConfig.masterKeyEncryptionSecret,
-    );
+      // decrypt the encryption key to decrypt the private_key
+      const decryptedEncryptionKey = this.decryptKey(
+        key.encryptionKey,
+        Environment.getServerConfig().masterKeyEncryptionSecret,
+      );
 
-    // decrypt the private_key using the decrypted encryption key
-    const decryptedPrivateKey = this.decryptKey(key.privateKey, decryptedEncryptionKey);
+      // decrypt the private_key using the decrypted encryption key
+      const decryptedPrivateKey = this.decryptKey(key.privateKey, decryptedEncryptionKey);
 
-    // get the PEM-encoded string
-    const privateKeyPKCS8 = await importPKCS8(decryptedPrivateKey, "RS256");
+      // get the PEM-encoded string
+      const privateKeyPKCS8 = await importPKCS8(decryptedPrivateKey, "RS256");
 
-    // Return the extracted keys
-    return { privateKeyPKCS8, privateKey: decryptedPrivateKey, publicKey: key.publicKey };
+      // Return the extracted keys
+      return { privateKeyPKCS8, privateKey: decryptedPrivateKey, publicKey: key.publicKey };
+
+      // Handle all errors
+    } catch (error) {
+      throw new OidcError({
+        error: "invalid_key",
+        message: "Failed to extract keys from status, 'current'.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
   }
 
   public async createKey() {
-    const key = await this.keyStoreRepository.getKeyByStatus("current");
+    try {
+      // Get key with status, "current"
+      const key = await this.keyStoreRepository.getKeyByStatus("current");
 
-    if (key) {
-      await this.keyStoreRepository.updateKeyStatus(key.id, "previous");
+      // If there is a key with status "current"
+      if (key) {
+        // Update its status to previous
+        await this.keyStoreRepository.updateKeyStatus(key.id, "previous");
+      }
+
+      // Generate a secret key to encrypt the private key
+      const privateKeySecret = generateIdFromEntropySize(32);
+
+      // Encrypt the generate secret key to safely store it in the databse
+      const encryptedPrivateKeySecret = this.encryptKey(
+        privateKeySecret,
+        Environment.getServerConfig().masterKeyEncryptionSecret,
+      );
+
+      // Generate a key-pair to store in the database
+      const keyPair = this.generateRSAKeyPair(2048);
+
+      // Encrypt the private key from the key-pair to safely store it in the database
+      const encryptedPrivateKey = this.encryptKey(keyPair.privateKey, privateKeySecret);
+
+      // Import a PEM-encoded SPKI string as a runtime-specific public key representation
+      const publicKey = await importSPKI(keyPair.publicKey, "RSA");
+
+      // Export a runtime-specific key representation (KeyLike) to a JWK.
+      const publicJWK = await exportJWK(publicKey);
+
+      // Store the new key in the database
+      const newKey = await this.keyStoreRepository.createKey({
+        encryptionKey: encryptedPrivateKeySecret,
+        privateKey: encryptedPrivateKey,
+        publicKey: {
+          ...publicJWK,
+          kid: generateIdFromEntropySize(16),
+          alg: "RS256",
+          use: "sig",
+        },
+      });
+
+      // Return only the newly generated public key
+      return newKey.publicKey;
+
+      // Handle error
+    } catch (error) {
+      throw new OidcError({
+        error: "key_creation_failed",
+        message: "Failed to create new key.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
     }
-
-    const clientSecretKey = generateIdFromEntropySize(32);
-
-    const encryptedSecretKey = this.encryptKey(clientSecretKey, appConfig.masterKeyEncryptionSecret);
-
-    const keyPair = this.generateRSAKeyPair(2048);
-
-    const encryptedPrivateKey = this.encryptKey(keyPair.privateKey, clientSecretKey);
-
-    const publicKey = await importSPKI(keyPair.publicKey, "RSA");
-
-    const publicJWK = await exportJWK(publicKey);
-
-    const newKey = await this.keyStoreRepository.createKey({
-      encryptionKey: encryptedSecretKey,
-      privateKey: encryptedPrivateKey,
-      publicKey: {
-        ...publicJWK,
-        kid: generateIdFromEntropySize(16),
-        alg: "RS256",
-        use: "sig",
-      },
-    });
-
-    return newKey.publicKey;
   }
 
   private deriveKey(masterKey: string) {

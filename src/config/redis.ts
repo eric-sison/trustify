@@ -1,8 +1,10 @@
 import { Redis } from "ioredis";
-import { appConfig } from "./environment";
+import { Environment } from "./environment";
 
-export const redisStore = new Redis(appConfig.redisPort, appConfig.redisHost, {
-  password: appConfig.redisPassword,
+const serverConfig = Environment.getServerConfig();
+
+export const redisStore = new Redis(serverConfig.redisPort, serverConfig.redisHost, {
+  password: serverConfig.redisPassword,
   enableReadyCheck: true,
   maxRetriesPerRequest: 5,
   retryStrategy: (times) => Math.min(times * 50, 500),

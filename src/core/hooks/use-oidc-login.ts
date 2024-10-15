@@ -47,7 +47,7 @@ export const useOIDCLogin = (
     // handle the success event
     onSuccess: (data) => {
       //redirect to consent page
-      router.push(data.consentUrl);
+      router.push(data.url);
     },
 
     // handle the error event

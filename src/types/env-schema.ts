@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const EnvSchema = z.object({
-  adminHost: z.string().url(),
   dbHost: z.string(),
   dbPort: z.coerce.number(),
   dbUser: z.string(),
@@ -11,4 +10,8 @@ export const EnvSchema = z.object({
   redisPort: z.coerce.number(),
   redisPassword: z.string().optional(),
   masterKeyEncryptionSecret: z.string().length(32),
+});
+
+export const HostEnvSchema = z.object({
+  adminHost: z.string().url(),
 });

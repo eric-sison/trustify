@@ -4,13 +4,15 @@ import { sessions } from "@trustify/db/schema/sessions";
 import { users } from "@trustify/db/schema/users";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { eq } from "drizzle-orm";
-import { Session } from "lucia";
 
 export class SessionRepository {
-  public async getSessionDetails(sid: Session) {
+  public async getSessionDetails(sid: string) {
     try {
       const ps = db
         .select({
+          id: sessions.id,
+          userId: users.id,
+          clientId: clients.id,
           client: clients.name,
           description: clients.description,
           logo: clients.logo,
@@ -26,7 +28,7 @@ export class SessionRepository {
         .from(sessions)
         .innerJoin(users, eq(sessions.userId, users.id))
         .innerJoin(clients, eq(sessions.clientId, clients.id))
-        .where(eq(sessions.id, sid.id))
+        .where(eq(sessions.id, sid))
         .prepare("get_session_details");
 
       const res = await ps.execute();

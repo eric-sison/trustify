@@ -1,24 +1,20 @@
-import { z } from "zod";
-import { LoginFormSchema } from "@trustify/core/schemas/auth-schema";
+import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
+import { AuthorizationService } from "@trustify/core/services/authorization-service";
 import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { verifyHash } from "@trustify/utils/hash-fns";
 import { lucia } from "@trustify/config/lucia";
-import { generateIdFromEntropySize, Session } from "lucia";
-import { SessionRepository } from "../repositories/session-repository";
-import { AUTH_CODE_LENGTH } from "@trustify/utils/constants";
-import { redisStore } from "@trustify/config/redis";
-import { AuthCodePayloadSchema } from "../schemas/token-schema";
 import { userAgent } from "next/server";
+import { z } from "zod";
 
 export class AuthenticationService {
-  constructor() {}
+  constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
 
-  public async authenticateUser(userId: string, clientId: string, details: Headers) {
+  public async authenticateUser(userId: string, headers: Headers) {
     // Create a session object
     const session = await lucia.createSession(userId, {
-      clientId: clientId,
-      userAgent: userAgent({ headers: details }),
+      clientId: this.loginRequest.client_id,
+      userAgent: userAgent({ headers }),
       signedInAt: new Date(),
     });
 
@@ -30,7 +26,7 @@ export class AuthenticationService {
     return sessionCookie;
   }
 
-  public async getUser(credentials: z.infer<typeof LoginFormSchema>) {
+  public async verifyUser(credentials: z.infer<typeof LoginFormSchema>) {
     // Initialize userRepository to interact with the database
     const userRepository = new UserRepository();
 
@@ -67,89 +63,57 @@ export class AuthenticationService {
     return user;
   }
 
-  public async getAuthenticationDetails(session: Session) {
-    // Initialize sessionRepository to interact with the database
-    const sessionRepository = new SessionRepository();
+  public async redirectToCallback(userId: string) {
+    const authorizationService = new AuthorizationService(this.loginRequest);
 
-    // Get the sessionDetails from session object
-    const sessionDetails = await sessionRepository.getSessionDetails(session);
-
-    // Throw an error if session is not found in the database
-    if (!sessionDetails) {
-      throw new OidcError({
-        error: "invalid_session",
-        message: "Your session is invalid.",
-        status: 401,
-      });
+    if (this.loginRequest.response_type === "code") {
+      return await authorizationService.authorizationCodeFlow(userId);
     }
 
-    // Return the sesion details
-    return sessionDetails;
+    if (this.loginRequest.response_type === "code token") {
+      // TODO: Implement flow
+      return await authorizationService.hybridFlowCodeToken();
+    }
+
+    if (this.loginRequest.response_type === "code id_token") {
+      // TODO: Implement flow
+      return await authorizationService.hybridFlowCodeIdToken();
+    }
+
+    if (this.loginRequest.response_type === "code id_token token") {
+      // TODO: Implement flow
+      return await authorizationService.hybridFlowCodeIdTokenToken();
+    }
+
+    return "";
   }
 
-  public async getStateFromStore(key: string | undefined) {
-    if (key) {
-      try {
-        // Get the state from the store using the opaqueState as key
-        const state = await redisStore.get(key);
+  // public async getStateFromStore(key: string | undefined) {
+  //   if (key) {
+  //     try {
+  //       // Get the state from the store using the opaqueState as key
+  //       const state = await redisStore.get(key);
 
-        // After acquiring the state from store, delete it
-        await redisStore.del(key);
+  //       // After acquiring the state from store, delete it
+  //       await redisStore.del(key);
 
-        // Return state - if undefined, return a pre-defined string
-        return state ?? "invalid-or-expired";
+  //       // Return state - if undefined, return a pre-defined string
+  //       return state ?? "invalid-or-expired";
 
-        // Handle redis erro
-      } catch (error) {
-        // Throw error if storing state to redis has failed
-        throw new OidcError({
-          error: "redis_get_failed",
-          message: "Failed to get value to redis store.",
-          status: 500,
+  //       // Handle redis erro
+  //     } catch (error) {
+  //       // Throw error if storing state to redis has failed
+  //       throw new OidcError({
+  //         error: "redis_get_failed",
+  //         message: "Failed to get value to redis store.",
+  //         status: 500,
 
-          // @ts-expect-error error is of type unknown
-          stack: error.stack,
-        });
-      }
-    }
-  }
-
-  public async generateAuthorizationCode(payload: z.infer<typeof AuthCodePayloadSchema>) {
-    // Validate the payload before storing in redis
-    const validatedPayload = AuthCodePayloadSchema.safeParse(payload);
-
-    // Throw an error if payload is not valid
-    if (!validatedPayload.success) {
-      throw new OidcError({
-        error: "code_payload_malformed",
-        message: "Make sure your authorization code's payload is valid.",
-        status: 400,
-      });
-    }
-
-    try {
-      // Generate authorization code
-      const authorizationCode = `auc_${generateIdFromEntropySize(AUTH_CODE_LENGTH)}`;
-
-      // Attempt to store it in redis
-      await redisStore.set(authorizationCode, JSON.stringify(validatedPayload.data), "EX", 60 * 5);
-
-      // Return the generated authorization code
-      return authorizationCode;
-
-      // Handle redis error
-    } catch (error) {
-      // Throw error if storing state to redis has failed
-      throw new OidcError({
-        error: "redis_set_failed",
-        message: "Failed to set value to redis store.",
-        status: 500,
-
-        // @ts-expect-error error is of type unknown
-        stack: error.stack,
-      });
-    }
-  }
+  //         // @ts-expect-error error is of type unknown
+  //         stack: error.stack,
+  //       });
+  //     }
+  //   }
+  // }
 
   private checkIfEmailIsVerified(isEmailVerified: boolean) {
     // Throw an error if the user's email is not verified
