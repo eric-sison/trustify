@@ -1,5 +1,7 @@
-import { appConfig } from "@trustify/config/environment";
+import { Environment } from "@trustify/config/environment";
 import { defineConfig } from "drizzle-kit";
+
+const serverConfig = Environment.getServerConfig();
 
 export default defineConfig({
   schema: "./src/db/schema/*",
@@ -7,10 +9,10 @@ export default defineConfig({
   dialect: "postgresql",
   verbose: true,
   dbCredentials: {
-    host: appConfig.dbHost,
-    port: appConfig.dbPort,
-    user: appConfig.dbUser,
-    password: appConfig.dbPassword,
-    database: appConfig.dbName,
+    host: serverConfig.dbHost,
+    port: serverConfig.dbPort,
+    user: serverConfig.dbUser,
+    password: serverConfig.dbPassword,
+    database: serverConfig.dbName,
   },
 });
