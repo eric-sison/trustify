@@ -23,6 +23,13 @@
           "commands": ["docker exec -it trustify-redis redis-cli -a redis_password"]
         }
       ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "bash"
+        }
+      ]
     }
   ]
 }
