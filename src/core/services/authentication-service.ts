@@ -88,33 +88,6 @@ export class AuthenticationService {
     return "";
   }
 
-  // public async getStateFromStore(key: string | undefined) {
-  //   if (key) {
-  //     try {
-  //       // Get the state from the store using the opaqueState as key
-  //       const state = await redisStore.get(key);
-
-  //       // After acquiring the state from store, delete it
-  //       await redisStore.del(key);
-
-  //       // Return state - if undefined, return a pre-defined string
-  //       return state ?? "invalid-or-expired";
-
-  //       // Handle redis erro
-  //     } catch (error) {
-  //       // Throw error if storing state to redis has failed
-  //       throw new OidcError({
-  //         error: "redis_get_failed",
-  //         message: "Failed to get value to redis store.",
-  //         status: 500,
-
-  //         // @ts-expect-error error is of type unknown
-  //         stack: error.stack,
-  //       });
-  //     }
-  //   }
-  // }
-
   private checkIfEmailIsVerified(isEmailVerified: boolean) {
     // Throw an error if the user's email is not verified
     if (!isEmailVerified) {
