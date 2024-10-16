@@ -27,9 +27,18 @@ export const AuthCodePayloadSchema = LoginRequestSchema.merge(
   z.object({ userId: z.string().length(ID_LENGTH) }),
 );
 
+// export const RequestClaimSchema = z.record(
+//   z.enum(oidcDiscovery.claims_supported),
+//   z.record(z.literal("essential"), z.boolean(), z.literal("values")).optional(),
+//   z.union([z.array(z.string()), z.string()]),
+// );
+
 export const RequestClaimSchema = z.record(
   z.enum(oidcDiscovery.claims_supported),
-  z.record(z.literal("essential"), z.boolean()),
+  z.object({
+    essential: z.boolean().optional().nullable(),
+    values: z.union([z.string(), z.array(z.string())]).optional(),
+  }),
 );
 
 export const ClaimsSchema = z.object({

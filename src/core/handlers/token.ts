@@ -60,6 +60,12 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
         ? tokenService.getClaims("id_token", payload.claims, payload.scope, user)
         : {};
 
+      const userinfoClaims = oidcDiscovery.claims_supported
+        ? tokenService.getClaims("userinfo", payload.claims, payload.scope, user)
+        : {};
+
+      // console.log({ claims: payload.claims });
+
       // Generate the id_token based on the parameters acquired from previous steps
       const idToken = await tokenService.generateToken({
         audience: client?.id,
@@ -80,7 +86,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       const accessToken = await tokenService.generateToken({
         audience: [oidcDiscovery.userinfo_endpoint],
         subject: user.id,
-        claims: { ...idTokenClaims },
+        claims: { ...userinfoClaims },
         keyId: publicKey.kid,
         signKey: privateKeyPKCS8,
         expiration: Math.floor(Date.now() / 1000 + 60 * 60),

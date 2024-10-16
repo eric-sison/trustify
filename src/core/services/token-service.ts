@@ -356,6 +356,10 @@ export class TokenService {
       essentialClaims.birthdate = user.birthdate?.toISOString().split("T")[0];
     }
 
+    if (claims.address?.essential) {
+      essentialClaims.address = user.address;
+    }
+
     return essentialClaims;
   }
 
