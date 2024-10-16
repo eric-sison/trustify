@@ -6,7 +6,6 @@ import { z, ZodLiteral } from "zod";
 export const LoginRequestSchema = z.object({
   client_id: z.string().length(ID_LENGTH),
   redirect_uri: z.string().url(),
-  //response_type: z.union([z.literal("code"), z.literal("token")]),
   response_type: z.union(
     oidcDiscovery.response_types_supported.map((type) => z.literal(type)) as [
       ZodLiteral<SupportedResponseTypes>,
@@ -24,6 +23,7 @@ export const LoginRequestSchema = z.object({
     .union([z.literal("login"), z.literal("consent"), z.literal("login consent"), z.literal("none")])
     .optional(),
   nonce: z.string().optional(),
+  display: z.union([z.literal("page"), z.literal("popup"), z.literal("touch")]).optional(),
 });
 
 export const LoginFormSchema = z.object({

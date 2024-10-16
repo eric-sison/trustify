@@ -1,11 +1,13 @@
 import { Environment } from "./environment";
 
+const adminHost = Environment.getPublicConfig().adminHost;
+
 export const oidcDiscovery = {
-  issuer: `${Environment.getPublicConfig().adminHost}`,
-  authorization_endpoint: `${Environment.getPublicConfig().adminHost}/api/v1/authorization`,
-  token_endpoint: `${Environment.getPublicConfig().adminHost}/api/v1/token`,
-  jwks_uri: `${Environment.getPublicConfig().adminHost}/api/v1/.well-known/jwks.json`,
-  userinfo_endpoint: `${Environment.getPublicConfig().adminHost}/api/v1/userinfo`,
+  issuer: `${adminHost}/api/v1`,
+  authorization_endpoint: `${adminHost}/api/v1/authorization`,
+  token_endpoint: `${adminHost}/api/v1/token`,
+  jwks_uri: `${adminHost}/api/v1/.well-known/jwks.json`,
+  userinfo_endpoint: `${adminHost}/api/v1/userinfo`,
   response_types_supported: ["code", "code id_token", "code token", "code id_token token"] as const,
   claims_parameter_supported: true,
   claims_supported: [
