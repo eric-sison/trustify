@@ -2,6 +2,7 @@ import { lucia } from "@trustify/config/lucia";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { cache } from "@trustify/core/libs/cache";
+import { HTTPException } from "hono/http-exception";
 
 export const requireAuth = createMiddleware(async (c, next) => {
   // get session_id from cookie
@@ -30,7 +31,16 @@ export const requireAuth = createMiddleware(async (c, next) => {
     key: `sid_${sessionId}`,
     ttl: 3600 * 24,
     debug: false,
-    onCacheMiss: async () => await lucia.validateSession(sessionId),
+    onCacheMiss: async () => {
+      try {
+        return await lucia.validateSession(sessionId);
+      } catch (error) {
+        throw new HTTPException(401, {
+          message: "unauthorized_action",
+          cause: error,
+        });
+      }
+    },
   });
 
   //const data = await lucia.validateSession(sessionId);

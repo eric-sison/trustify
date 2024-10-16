@@ -6,6 +6,8 @@ import { KeyStoreRepository } from "@trustify/core/repositories/keystore-reposit
 import { Context } from "hono";
 import { UserRepository } from "../repositories/user-repository";
 import { TokenService } from "../services/token-service";
+// import { UserRepository } from "../repositories/user-repository";
+// import { TokenService } from "../services/token-service";
 
 export type BearerAuthMiddleware = {
   Variables: {
@@ -67,8 +69,9 @@ export const userinfoAuth = createMiddleware(async (c, next) => {
           updated_at: secondsSinceEpoch,
         };
 
-        // @ts-expect-error - this is not type safe
-        const claims = tokenService.setClaimsFromScope(payload.scope, user);
+        // @ts-expect-error this is wrong!
+        // ! this will cause error
+        const claims = tokenService.getClaims("userinfo", payload.claims, payload.scope, user);
 
         c.set("claims", { ...claims, sub: userInfo.sub });
 

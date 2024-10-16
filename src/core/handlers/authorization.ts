@@ -5,6 +5,7 @@ import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
 import { getCookie } from "hono/cookie";
 import { ClientService } from "../services/client-service";
+import { lucia } from "@trustify/config/lucia";
 
 export const authorizationHandler = new Hono<HonoAppBindings>().get(
   "/",
@@ -14,7 +15,7 @@ export const authorizationHandler = new Hono<HonoAppBindings>().get(
     const loginRequest = c.req.valid("query");
 
     // Get the currently active session (if not undefined)
-    const session = getCookie(c, "sid");
+    const session = getCookie(c, lucia.sessionCookieName);
 
     // Initialize the authorization service
     const authorizationService = new AuthorizationService(loginRequest);

@@ -14,23 +14,8 @@ export const lucia = new Lucia(adapter, {
       secure: process.env.NODE_ENV === "production",
     },
   },
-  getSessionAttributes: (attributes) => {
-    return {
-      userAgent: attributes.userAgent,
-      signedInAt: attributes.signedInAt,
-      clientId: attributes.clientId,
-    };
-  },
-  getUserAttributes: (attributes) => {
-    return {
-      email: attributes.email,
-      givenName: attributes.givenName,
-      middleName: attributes.middleName,
-      familyName: attributes.familyName,
-      picture: attributes.picture,
-      role: attributes.role,
-    };
-  },
+  getSessionAttributes: (attributes) => attributes,
+  getUserAttributes: (attributes) => attributes,
 });
 
 declare module "lucia" {
@@ -43,7 +28,7 @@ declare module "lucia" {
 
 export type DatabaseSessionAttributes = Pick<
   typeof sessions.$inferSelect,
-  "userAgent" | "signedInAt" | "clientId"
+  "userAgent" | "signedInAt" | "clientId" | "consentGrant"
 >;
 
 export type DatabaseUserAttributes = Pick<

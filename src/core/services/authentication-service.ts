@@ -16,6 +16,7 @@ export class AuthenticationService {
       clientId: this.loginRequest.client_id,
       userAgent: userAgent({ headers }),
       signedInAt: new Date(),
+      consentGrant: false,
     });
 
     // Create session cookie and assign its ID from the session object
@@ -85,7 +86,11 @@ export class AuthenticationService {
       return await authorizationService.hybridFlowCodeIdTokenToken();
     }
 
-    return "";
+    throw new OidcError({
+      error: "unsupported_response_type",
+      message: "The response type is not supported.",
+      status: 400,
+    });
   }
 
   private checkIfEmailIsVerified(isEmailVerified: boolean) {

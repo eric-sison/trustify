@@ -36,7 +36,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     // Handle grant_type=authorization_code
     if (grant_type === "authorization_code") {
       // Get the token_endpoint_auth_method from the database
-      const clientAuthMethod = await clientService.getClientAuthMethod(client_id);
+      const clientAuthMethod = await clientService.getClientAuthMethod(payload.client_id);
 
       // Handle the token endpoint auth method, depending on the client's request
       // Return the verified client from the credentials passed in the request
@@ -80,6 +80,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       const accessToken = await tokenService.generateToken({
         audience: [oidcDiscovery.userinfo_endpoint],
         subject: user.id,
+        claims: { ...idTokenClaims },
         keyId: publicKey.kid,
         signKey: privateKeyPKCS8,
         expiration: Math.floor(Date.now() / 1000 + 60 * 60),

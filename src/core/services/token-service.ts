@@ -196,25 +196,20 @@ export class TokenService {
     codeChallenge: z.infer<typeof AuthCodePayloadSchema>["code_challenge"],
     codeVerifier: z.infer<typeof TokenBodySchema>["code_verifier"],
   ) {
-    if (!codeVerifier || !codeChallenge) {
-      throw new OidcError({
-        error: "invalid_pkce_code",
-        message: "Missing required codes for authorization flow with PKCE",
-        status: 400,
-      });
-    }
+    // Only run this function if code_verifier is provided in the request parameter
+    if (codeVerifier && codeChallenge) {
+      // Hash the code verifier to see if it matches with the stored code_challenge
+      const hashedCode = await this.hashCodeVerifier(codeVerifier);
 
-    // Hash the code verifier to see if it matches with the stored code_challenge
-    const hashedCode = await this.hashCodeVerifier(codeVerifier);
-
-    // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
-    if (hashedCode !== codeChallenge) {
-      throw new OidcError({
-        error: "pkce_error",
-        message: "Code challenge and verifier don't match",
-        description: "Code challenge and verifier don't match",
-        status: 400,
-      });
+      // Check if the hashed code_verifier matches with the code_challenge, and throw an error if it doesn't
+      if (hashedCode !== codeChallenge) {
+        throw new OidcError({
+          error: "pkce_error",
+          message: "Code challenge and verifier don't match",
+          description: "Code challenge and verifier don't match",
+          status: 400,
+        });
+      }
     }
   }
 

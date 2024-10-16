@@ -46,12 +46,34 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
       return c.json({ url: consentUrl });
     }
 
+    // Check if prompt parameter is not provided by the client
+    if (!loginRequest.prompt) {
+      // Initialize session servoce
+      const sessionService = new SessionService();
+
+      // Get the currently active session
+      const sessionDetails = await sessionService.getSessionDetails(value);
+
+      // Check if consent has not yet been granted
+      if (!sessionDetails.consentGrant) {
+        // If so, generate the /consent url
+        const consentUrl = encodeUrl({
+          base: Environment.getPublicConfig().adminHost,
+          path: "/consent",
+          params: loginRequest,
+        });
+
+        // return the consent url back to the client
+        return c.json({ url: consentUrl });
+      }
+    }
+
     // Process the client's redirect_uri and return values requested by the client
     // according to what was specified in the response_type
-    const redirectUrl = await authenticationService.redirectToCallback(verifiedUser.id);
+    const callbackUrl = await authenticationService.redirectToCallback(verifiedUser.id);
 
     // Return the generated url back to the client
-    return c.json({ url: redirectUrl });
+    return c.json({ url: callbackUrl });
   })
 
   .get("get-authentication-details", requireAuth, async (c) => {
@@ -71,6 +93,12 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
 
     // Initialize the authentication service
     const authenticationService = new AuthenticationService(loginRequest);
+
+    // Initialize the session service
+    const sessionService = new SessionService();
+
+    // Update consent grant to true
+    await sessionService.updateConsent(c.get("session").id, true);
 
     // Process the client's redirect_uri and return values requested by the client
     // according to what was specified in the response_type

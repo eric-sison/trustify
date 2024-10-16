@@ -11,6 +11,7 @@ export class SessionRepository {
       const ps = db
         .select({
           id: sessions.id,
+          consentGrant: sessions.consentGrant,
           userId: users.id,
           clientId: clients.id,
           client: clients.name,
@@ -34,6 +35,29 @@ export class SessionRepository {
       const res = await ps.execute();
 
       return res[0];
+    } catch (error) {
+      throw new OidcError({
+        error: "failed_query",
+        message: "Failed to execute query.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
+  async updateConsent(sessionId: string, allow: boolean) {
+    try {
+      const ps = db
+        .update(sessions)
+        .set({ consentGrant: allow })
+        .where(eq(sessions.id, sessionId))
+        .prepare("update_consent");
+
+      const result = await ps.execute();
+
+      return result[0];
     } catch (error) {
       throw new OidcError({
         error: "failed_query",

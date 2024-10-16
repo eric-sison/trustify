@@ -20,4 +20,8 @@ export class SessionService {
     // Return the sesion details
     return sessionDetails;
   }
+
+  public async updateConsent(sessionId: string, allow: boolean) {
+    await this.sessionRepository.updateConsent(sessionId, allow);
+  }
 }

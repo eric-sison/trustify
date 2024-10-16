@@ -1,4 +1,4 @@
-import { char, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { char, jsonb, pgTable, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
 import { ID_LENGTH } from "@trustify/utils/constants";
 import { users } from "./users";
 import { clients } from "./clients";
@@ -14,6 +14,7 @@ export const sessions = pgTable("sessions", {
     .notNull()
     .references(() => clients.id),
   userAgent: jsonb("user_agent").$type<ReturnType<typeof userAgent>>(),
+  consentGrant: boolean("consent_granted").default(false).notNull(),
   expiresAt: timestamp("expires_at", {
     withTimezone: true,
     mode: "date",

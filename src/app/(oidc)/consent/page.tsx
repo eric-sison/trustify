@@ -22,11 +22,11 @@ export default async function OidcConsent(props: PageProps<string, z.infer<typeo
   const session = await validateSession();
 
   // If session is not valid, redirect user to login page
-  if (session === null) {
+  if (!session) {
     const loginUrl = encodeUrl({
       base: Environment.getPublicConfig().adminHost,
       path: "/login",
-      params: { ...parsedParams.data },
+      params: parsedParams.data,
     });
 
     redirect(loginUrl);
