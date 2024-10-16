@@ -3,6 +3,7 @@ import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { SupportedResponseTypes, SupportedScopes } from "@trustify/core/types/oidc-supports";
+import { SessionService } from "@trustify/core/services/session-service";
 import { redisStore } from "@trustify/config/redis";
 import { generateIdFromEntropySize } from "lucia";
 import { clients } from "@trustify/db/schema/clients";
@@ -12,7 +13,6 @@ import { Environment } from "@trustify/config/environment";
 import { z } from "zod";
 import pretty from "pino-pretty";
 import pino from "pino";
-import { SessionService } from "./session-service";
 
 export class AuthorizationService {
   // Initialize environment config for reuse
