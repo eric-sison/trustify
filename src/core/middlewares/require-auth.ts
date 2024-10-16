@@ -1,7 +1,7 @@
 import { lucia } from "@trustify/config/lucia";
+import { cache } from "@trustify/core/libs/cache";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
-import { cache } from "@trustify/core/libs/cache";
 import { HTTPException } from "hono/http-exception";
 
 export const requireAuth = createMiddleware(async (c, next) => {
@@ -28,7 +28,7 @@ export const requireAuth = createMiddleware(async (c, next) => {
 
   // cache the session
   const data = await cache({
-    key: `sid_${sessionId}`,
+    key: `${lucia.sessionCookieName}_${sessionId}`,
     ttl: 3600 * 24,
     debug: false,
     onCacheMiss: async () => {
