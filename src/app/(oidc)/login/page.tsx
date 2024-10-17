@@ -8,7 +8,6 @@ import { encodeUrl } from "@trustify/utils/encode-url";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import { z } from "zod";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Login",
