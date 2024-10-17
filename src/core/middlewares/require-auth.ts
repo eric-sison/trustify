@@ -16,8 +16,8 @@ export const requireAuth = createMiddleware(async (c, next) => {
     c.set("session", null);
 
     // Bypass OIDC Error if route path is login
-    if (c.req.routePath === "/api/v1/oidc/login") {
-      await next();
+    if (c.req.routePath === "/api/v1/oidc/login" && c.req.method === "POST") {
+      return await next();
     }
 
     // return unauthorized error

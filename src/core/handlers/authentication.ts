@@ -37,6 +37,28 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
 
         // Set the session cookie in the user agent's browser cookie
         setCookie(c, sid.name, sid.value, sid.attributes);
+
+        // Check if prompt parameter is not provided by the client or if prompt is "login"
+        if (!loginRequest.prompt || loginRequest.prompt === "login") {
+          // Initialize session servoce
+          const sessionService = new SessionService();
+
+          // Get the currently active session
+          const sessionDetails = await sessionService.getSessionDetails(sid.value);
+
+          // Check if consent has not yet been granted
+          if (!sessionDetails.consentGrant) {
+            // If so, generate the /consent url
+            const consentUrl = encodeUrl({
+              base: Environment.getPublicConfig().adminHost,
+              path: "/consent",
+              params: loginRequest,
+            });
+
+            // return the consent url back to the client
+            return c.json({ url: consentUrl });
+          }
+        }
       }
 
       // If the client specified a prompt parameter, and it happens to contain "consent",
@@ -51,28 +73,6 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
 
         // Return the generated consent url back to the client
         return c.json({ url: consentUrl });
-      }
-
-      // Check if prompt parameter is not provided by the client
-      if (!loginRequest.prompt || loginRequest.prompt === "login") {
-        // Initialize session servoce
-        const sessionService = new SessionService();
-
-        // Get the currently active session
-        const sessionDetails = await sessionService.getSessionDetails(c.get("session").id);
-
-        // Check if consent has not yet been granted
-        if (!sessionDetails.consentGrant) {
-          // If so, generate the /consent url
-          const consentUrl = encodeUrl({
-            base: Environment.getPublicConfig().adminHost,
-            path: "/consent",
-            params: loginRequest,
-          });
-
-          // return the consent url back to the client
-          return c.json({ url: consentUrl });
-        }
       }
 
       // Process the client's redirect_uri and return values requested by the client

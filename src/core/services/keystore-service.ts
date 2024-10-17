@@ -6,6 +6,8 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { Environment } from "@trustify/config/environment";
 
 export class KeyStoreService {
+  private readonly serverConfig = Environment.getServerConfig();
+
   // Initialize keyStoreRepository
   private readonly keyStoreRepository = new KeyStoreRepository();
 
@@ -23,7 +25,7 @@ export class KeyStoreService {
       // decrypt the encryption key to decrypt the private_key
       const decryptedEncryptionKey = this.decryptKey(
         key.encryptionKey,
-        Environment.getServerConfig().masterKeyEncryptionSecret,
+        this.serverConfig.masterKeyEncryptionSecret,
       );
 
       // decrypt the private_key using the decrypted encryption key
@@ -65,7 +67,7 @@ export class KeyStoreService {
       // Encrypt the generate secret key to safely store it in the databse
       const encryptedPrivateKeySecret = this.encryptKey(
         privateKeySecret,
-        Environment.getServerConfig().masterKeyEncryptionSecret,
+        this.serverConfig.masterKeyEncryptionSecret,
       );
 
       // Generate a key-pair to store in the database
