@@ -46,8 +46,40 @@ export const useOIDCLogin = (
 
     // handle the success event
     onSuccess: (data) => {
-      //redirect to consent page
-      router.push(data.url);
+      // Transform redirect_uri into a URL object
+      const redirectUri = new URL(loginRequest.redirect_uri);
+
+      // Transform the generated url into a URL object
+      const url = new URL(data.url);
+
+      // Check if loginRequest.display is "popup"
+      if (loginRequest.display === "popup") {
+        // Check if the generated url is the redirect_uri
+        if (url.pathname === redirectUri.pathname) {
+          // If so, allow the child popup window to post a message to the parent window.
+          // Pass sucess flag to true, and the generated url data
+          window.opener.postMessage(
+            {
+              success: true,
+              url: url.href,
+            },
+            "*",
+          );
+
+          // Once data has been passed to the parent window, close the popup window
+          window.close();
+        }
+
+        // Redirect to the next url. Note that when the window.close() has been called,
+        // this line will no longer be invoked.
+        router.push(url.href);
+      }
+
+      // Check if display is not provided, or if its value is "page"
+      if (!loginRequest.display || loginRequest.display === "page") {
+        // If so, redirect to the generated url right away.
+        router.push(url.href);
+      }
     },
 
     // handle the error event

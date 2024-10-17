@@ -21,8 +21,6 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
 
   const $invalidateSession = rpcClient.api.v1.oidc.logout.$post;
 
-  //const params = useSearchParams();
-
   const router = useRouter();
 
   const { data: clientUserDetails, error } = useQuery({
@@ -57,7 +55,22 @@ export const OidcConsentForm: FunctionComponent<OidcConsentFormProps> = ({ login
       return await res.json();
     },
     onSuccess: (data) => {
-      router.push(data.url);
+      //redirect to consent page
+      if (loginRequest.display === "popup") {
+        window.opener.postMessage(
+          {
+            success: true,
+            url: data.url,
+          },
+          "*",
+        );
+
+        window.close();
+      } else {
+        router.push(data.url);
+      }
+
+      //router.push(data.url);
     },
     onError: (err) => {
       // TODO: implement error handling

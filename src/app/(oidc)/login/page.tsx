@@ -8,6 +8,7 @@ import { encodeUrl } from "@trustify/utils/encode-url";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import { z } from "zod";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -59,11 +60,13 @@ export default async function OidcLogin(props: PageProps<string, z.infer<typeof 
   // Or if there is no session, authenticate the user
   if ((session && parsedParams.data.prompt?.includes("login")) || session === null) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="w-96">
-          <OidcLoginForm {...parsedParams.data} />
+      <>
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="w-96">
+            <OidcLoginForm {...parsedParams.data} />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 }
