@@ -120,8 +120,8 @@ export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
               />
             </CardContent>
             <CardFooter className="my-5">
-              <Button disabled={login.isLoading} className="w-full space-x-2" type="submit">
-                {login.isLoading ? (
+              <Button disabled={login.data !== undefined} className="w-full space-x-2" type="submit">
+                {login.data ? (
                   <div className="flex items-center gap-2">
                     <LoadingSpinner size={18} />
                     <span>Please Wait</span>

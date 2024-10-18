@@ -19,7 +19,7 @@ export const useOIDCLogin = (
   // initialize router - to be used to redirect user to /consent once login is successful
   const router = useRouter();
 
-  const { isPending, error, mutate } = useMutation<
+  const { data, error, mutate } = useMutation<
     InferResponseType<typeof $login>,
     OidcError,
     InferRequestType<typeof $login>["form"]
@@ -92,5 +92,5 @@ export const useOIDCLogin = (
     },
   });
 
-  return { isLoading: isPending, error, mutate };
+  return { data, error, mutate };
 };
