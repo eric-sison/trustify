@@ -233,7 +233,7 @@ export class AuthorizationService {
       }
 
       // Log a warning if redirect URI does not use HTTPS
-      if (parsedUri.protocol !== "https") {
+      if (parsedUri.protocol !== "https:") {
         pino(pretty()).warn(`Redirect URI (${parsedUri.origin}) is not encrypted!`);
       }
 
