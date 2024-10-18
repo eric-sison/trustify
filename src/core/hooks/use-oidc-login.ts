@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { UseFormReturn } from "react-hook-form";
 import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { OidcError } from "@trustify/core/types/oidc-error";
-import { rpcClient } from "@trustify/core/libs/rpc-client";
+import { rpcClient } from "@trustify/utils/rpc-client";
 import { z } from "zod";
 
 export const useOIDCLogin = (

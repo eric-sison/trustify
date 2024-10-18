@@ -1,6 +1,6 @@
 import { OidcConsentForm } from "@trustify/components/features/oidc/OidcConsentForm";
 import { Environment } from "@trustify/config/environment";
-import { validateSession } from "@trustify/core/libs/validate-session";
+import { validateSession } from "@trustify/utils/validate-session";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { PageProps } from "@trustify/types/page-props";
 import { encodeUrl } from "@trustify/utils/encode-url";

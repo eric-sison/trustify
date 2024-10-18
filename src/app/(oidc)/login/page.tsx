@@ -1,6 +1,6 @@
 import { AuthenticationService } from "@trustify/core/services/authentication-service";
 import { OidcLoginForm } from "@trustify/components/features/oidc/OidcLoginForm";
-import { validateSession } from "@trustify/core/libs/validate-session";
+import { validateSession } from "@trustify/utils/validate-session";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { Environment } from "@trustify/config/environment";
 import { PageProps } from "@trustify/types/page-props";

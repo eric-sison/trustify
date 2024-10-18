@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
-import { rpcClient } from "@trustify/core/libs/rpc-client";
+import { rpcClient } from "@trustify/utils/rpc-client";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { Button } from "@trustify/components/ui/Button";
 import { InferRequestType, InferResponseType } from "hono";

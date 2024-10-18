@@ -1,5 +1,5 @@
 import { lucia } from "@trustify/config/lucia";
-import { cache } from "@trustify/core/libs/cache";
+import { cache } from "@trustify/utils/cache";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
