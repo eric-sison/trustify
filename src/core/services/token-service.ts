@@ -8,7 +8,7 @@ import { ClientService } from "@trustify/core/services/client-service";
 import { GenerateTokenOptions, UserClaims } from "@trustify/core/types/tokens";
 import { SupportedClaims, SupportedScopes } from "@trustify/core/types/oidc-supports";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
-import { Nullable } from "@trustify/utils/nullable-type";
+import { Nullable } from "@trustify/types/nullable-type";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { redisStore } from "@trustify/config/redis";
 import { SignJWT } from "jose";

@@ -1,5 +1,5 @@
 import { type KeyLike } from "jose";
-import { Nullable } from "@trustify/utils/nullable-type";
+import { Nullable } from "@trustify/types/nullable-type";
 import { users } from "@trustify/db/schema/users";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { SupportedClaims } from "./oidc-supports";
