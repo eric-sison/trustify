@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export default async function OidcConsent(props: PageProps<string, z.infer<typeof LoginRequestSchema>>) {
   // Parse params to validate its shape
-  const parsedParams = LoginRequestSchema.safeParse(props.searchParams);
+  const parsedParams = LoginRequestSchema.safeParse(await props.searchParams);
 
   // If any of the params are of invalid type or format, redirect to fallback url
   if (!parsedParams.data) {

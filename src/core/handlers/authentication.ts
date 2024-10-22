@@ -10,7 +10,6 @@ import { setCookie } from "hono/cookie";
 import { Hono } from "hono";
 
 export const authenticationHandler = new Hono<HonoAppBindings>()
-
   .post(
     "/login",
     requireAuth,
@@ -83,6 +82,8 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
       return c.json({ url: callbackUrl });
     },
   )
+
+  .post("/verify-password-hash")
 
   .get("get-authentication-details", requireAuth, async (c) => {
     // Initialize authentication service

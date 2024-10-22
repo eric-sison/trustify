@@ -1,13 +1,14 @@
 import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { AuthorizationService } from "@trustify/core/services/authorization-service";
-import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
-import { verifyHash } from "@trustify/utils/hash-fns";
 import { lucia } from "@trustify/config/lucia";
 import { userAgent } from "next/server";
 import { z } from "zod";
+import { UserService } from "./user-service";
 
 export class AuthenticationService {
+  private readonly userService = new UserService();
+
   constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
 
   public async authenticateUser(userId: string, headers: Headers) {
@@ -27,32 +28,26 @@ export class AuthenticationService {
     return sessionCookie;
   }
 
+  public async verifyUserEmail(email: string) {
+    const user = await this.userService.verifyUserEmail(email);
+
+    this.checkIfEmailIsVerified(user.emailVerified);
+
+    this.checkIfUserIsSuspended(user.suspended);
+
+    return user;
+  }
+
+  public async verifyUserPassword(hashedPw: string, plainPw: string) {
+    await this.userService.verifyUserPassword(hashedPw, plainPw);
+  }
+
   public async verifyUser(credentials: z.infer<typeof LoginFormSchema>) {
-    // Initialize userRepository to interact with the database
-    const userRepository = new UserRepository();
-
     // Get the user by email address
-    const user = await userRepository.getUserByEmail(credentials.email);
-
-    // Throw an error if user was not found
-    if (!user) {
-      throw new OidcError({
-        error: "invalid_credentials",
-        message: "Incorrect email or password. Try again.",
-        status: 401,
-      });
-    }
+    const user = await this.userService.verifyUserEmail(credentials.email);
 
     // check if password is valid
-    const isPasswordValid = await verifyHash(user.password, credentials.password);
-
-    if (!isPasswordValid) {
-      throw new OidcError({
-        error: "invalid_credentials",
-        message: "Incorrect email or password. Try again.",
-        status: 401,
-      });
-    }
+    await this.userService.verifyUserPassword(user.password, credentials.password);
 
     // Check if user email is verified
     this.checkIfEmailIsVerified(user.emailVerified);

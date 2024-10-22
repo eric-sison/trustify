@@ -30,7 +30,7 @@ import {
   CardTitle,
 } from "@trustify/components/ui/Card";
 
-type OidcLoginFormProps = z.infer<typeof LoginRequestSchema>;
+export type OidcLoginFormProps = z.infer<typeof LoginRequestSchema>;
 
 export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
   const form = useForm<z.infer<typeof LoginFormSchema>>({

@@ -5,7 +5,9 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 
 export const validateSession = cache(async () => {
-  const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
+  const cookieStore = await cookies();
+
+  const sessionId = cookieStore.get(lucia.sessionCookieName)?.value ?? null;
 
   if (!sessionId) return null;
 
@@ -15,12 +17,12 @@ export const validateSession = cache(async () => {
     try {
       if (session && session.fresh) {
         const sessionCookie = lucia.createSessionCookie(session.id);
-        cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+        cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
       }
 
       if (!session) {
         const sessionCookie = lucia.createBlankSessionCookie();
-        cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+        cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
       }
 
       return { user, session };

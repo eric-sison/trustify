@@ -15,11 +15,11 @@ export const metadata: Metadata = {
 
 export default async function OidcLogin(props: PageProps<string, z.infer<typeof LoginRequestSchema>>) {
   // Check if params are valid
-  const parsedParams = LoginRequestSchema.safeParse(props.searchParams);
+  const parsedParams = LoginRequestSchema.safeParse(await props.searchParams);
 
   // If not, redirect to fallback url
   if (!parsedParams.success) {
-    // console.log(parsedParams.error.issues);
+    // console.log(parsedParams.error);
     redirect("/");
   }
 
