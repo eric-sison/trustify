@@ -166,7 +166,7 @@ export class TokenService {
     }
   }
 
-  public async renewAccessToken(clientId: string, clientSecret: string, refreshToken: string) {
+  public async getNewAccessToken(clientId: string, clientSecret: string, refreshToken: string) {
     return await this.refreshTokenService.refresh(clientId, clientSecret, refreshToken);
   }
 

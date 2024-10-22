@@ -152,9 +152,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       //   return res.status(400).json({ error: "invalid_grant" });
       // }
 
-      const newToken = await tokenService.renewAccessToken(client_id, client_secret, refresh_token);
-
-      console.log({ client, newToken });
+      await tokenService.getNewAccessToken(client_id, client_secret, refresh_token);
 
       return c.json({
         access_token: "<access_token>",
