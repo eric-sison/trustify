@@ -9,7 +9,8 @@ export type GenerateTokenOptions = {
   signKey: KeyLike;
   subject: string | undefined;
   audience: string | string[] | undefined;
-  claims?:
+  claims?: object;
+  supportedClaims?:
     | (Omit<Partial<Nullable<SupportedClaims>>, "sub"> & {
         auth_time?: number;
         nonce?: string;

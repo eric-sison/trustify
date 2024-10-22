@@ -32,16 +32,7 @@ export const oidcDiscovery = {
     "address",
     "updated_at",
   ] as const,
-  scopes_supported: [
-    "openid",
-    "profile",
-    "email",
-    "phone",
-    "address",
-
-    // TODO: request for refresh_token is to be implemented
-    // "offline_access"
-  ] as const,
+  scopes_supported: ["openid", "profile", "email", "phone", "address", "offline_access"] as const,
   subject_types_supported: ["public"] as const,
   id_token_signing_alg_values_supported: [
     "RS256",

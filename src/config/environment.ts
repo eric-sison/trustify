@@ -14,6 +14,7 @@ export class Environment {
       redisPassword: process.env.REDIS_PASS,
       issuer: process.env.IDP_ISSUER!,
       masterKeyEncryptionSecret: process.env.MASTER_KEY_ENCRYPTION_SECRET!,
+      refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET!,
     };
 
     return validateEnv<typeof EnvSchema>(appEnv, EnvSchema);

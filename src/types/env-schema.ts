@@ -10,6 +10,7 @@ export const EnvSchema = z.object({
   redisPort: z.coerce.number(),
   redisPassword: z.string().optional(),
   masterKeyEncryptionSecret: z.string().length(32),
+  refreshTokenSecret: z.string().length(32),
 });
 
 export const HostEnvSchema = z.object({

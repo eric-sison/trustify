@@ -13,8 +13,11 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { redisStore } from "@trustify/config/redis";
 import { SignJWT } from "jose";
 import { z } from "zod";
+import { RefreshTokenService } from "./refresh-token-service";
 
 export class TokenService {
+  private readonly refreshTokenService = new RefreshTokenService();
+
   private readonly clientService = new ClientService();
 
   public async handleClientSecretBasic(
@@ -129,13 +132,18 @@ export class TokenService {
     } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
   }
 
-  public async generateToken(options: GenerateTokenOptions) {
+  public async generateRefreshToken(userId: string, clientId: string, scope: string) {
+    return await this.refreshTokenService.generateRefreshToken(userId, clientId, scope);
+  }
+
+  public async generateJWT(options: GenerateTokenOptions) {
     try {
       return await new SignJWT({
         iss: oidcDiscovery.issuer,
         sub: options.subject,
         aud: options.audience,
-        ...options?.claims,
+        ...options.claims,
+        ...options.supportedClaims,
         exp: options.expiration,
         nbf: Math.floor(Date.now() / 1000),
         iat: Math.floor(Date.now() / 1000),
@@ -158,7 +166,9 @@ export class TokenService {
     }
   }
 
-  public buildTokenResponse() {}
+  public async renewAccessToken(clientId: string, clientSecret: string, refreshToken: string) {
+    return await this.refreshTokenService.refresh(clientId, clientSecret, refreshToken);
+  }
 
   private async hashCodeVerifier(codeVerifier: string) {
     try {
@@ -290,6 +300,26 @@ export class TokenService {
   private setEssentialClaims(claims: z.infer<typeof RequestClaimSchema>, user: UserClaims) {
     // Initialize essentialClaims to be an empty object
     const essentialClaims: Partial<Nullable<SupportedClaims>> = {};
+
+    if (claims.email?.essential) {
+      essentialClaims.email = user.email;
+    }
+
+    if (claims.phone_number?.essential) {
+      essentialClaims.phone_number = user.phoneNumber;
+    }
+
+    if (claims.given_name?.essential) {
+      essentialClaims.given_name = user.givenName;
+    }
+
+    if (claims.middle_name?.essential) {
+      essentialClaims.middle_name = user.middleName;
+    }
+
+    if (claims.family_name?.essential) {
+      essentialClaims.family_name = user.familyName;
+    }
 
     // Include gender if claim is marked as essential
     if (claims.gender?.essential) {

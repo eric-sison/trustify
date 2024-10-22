@@ -15,10 +15,10 @@ export const TokenBodySchema = z.object({
       ZodLiteral<SupportedGrantTypes>,
     ],
   ),
-  code: z.string(),
+  code: z.string().optional(),
   client_id: z.string().length(ID_LENGTH).optional(),
   client_secret: z.string().optional(),
-  redirect_uri: z.string().url(),
+  redirect_uri: z.string().url().optional(),
   code_verifier: z.string().optional(),
   refresh_token: z.string().optional(),
 });

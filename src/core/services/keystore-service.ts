@@ -128,7 +128,7 @@ export class KeyStoreService {
     }
   }
 
-  private encryptKey(text: string, key: string) {
+  public encryptKey(text: string, key: string) {
     try {
       // Initialize iv for encrypting the plain text
       const iv = randomBytes(this.ivLength);

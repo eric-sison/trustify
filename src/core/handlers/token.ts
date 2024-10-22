@@ -19,7 +19,8 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     const { authorization } = c.req.valid("header");
 
     // Validate form from request
-    const { code, grant_type, client_id, client_secret, code_verifier, refresh_token } = c.req.valid("form");
+    const { code, grant_type, client_id, client_secret, code_verifier, refresh_token, redirect_uri } =
+      c.req.valid("form");
 
     // Initialize token service
     const tokenService = new TokenService();
@@ -30,11 +31,20 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
     // Initialize user service
     const userService = new UserService();
 
-    // Get the payload from store using the supplied code
-    const payload = await tokenService.getAuthCodePayload(code);
-
     // Handle grant_type=authorization_code
     if (grant_type === "authorization_code") {
+      // Make sure that code and redirect_uri is provided
+      if (!code || !redirect_uri) {
+        throw new OidcError({
+          error: "invalid_authorization_code",
+          message: "Your authorization code is either missing or invalid",
+          status: 400,
+        });
+      }
+
+      // Get the payload from store using the supplied code
+      const payload = await tokenService.getAuthCodePayload(code);
+
       // Get the token_endpoint_auth_method from the database
       const clientAuthMethod = await clientService.getClientAuthMethod(payload.client_id);
 
@@ -55,7 +65,6 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       // This ensures that the server is signning new tokens using the latest key
       const { privateKeyPKCS8, publicKey } = await keyStoreService.extractKeysFromCurrent();
 
-      // TODO: Test this out
       const idTokenClaims = oidcDiscovery.claims_supported
         ? tokenService.getClaims("id_token", payload.claims, payload.scope, user)
         : {};
@@ -64,37 +73,44 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
         ? tokenService.getClaims("userinfo", payload.claims, payload.scope, user)
         : {};
 
-      // console.log({ claims: payload.claims });
+      // Make sure to delete the authorization code from the redis store
+      // This ensures that the same code will not be used to exchange for another set of tokens
+      await redisStore.del(code);
 
       // Generate the id_token based on the parameters acquired from previous steps
-      const idToken = await tokenService.generateToken({
-        audience: client?.id,
+      const idToken = await tokenService.generateJWT({
+        audience: client.id,
         subject: user.id,
         keyId: publicKey.kid,
         signKey: privateKeyPKCS8,
         expiration: Math.floor(Date.now() / 1000 + 60 * 60), // 1 hr
-        claims: {
+        supportedClaims: {
           nonce: payload.nonce,
           auth_time: Math.floor(Date.now() / 1000),
-
-          // Get claims for id_token
-          ...idTokenClaims,
+          ...idTokenClaims, // Get claims for id_token
         },
       });
 
       // Similarly, generate the access_token based on the parameters acquired from previous steps
-      const accessToken = await tokenService.generateToken({
+      const accessToken = await tokenService.generateJWT({
         audience: [oidcDiscovery.userinfo_endpoint],
         subject: user.id,
-        claims: { ...userinfoClaims },
+        supportedClaims: { ...userinfoClaims },
         keyId: publicKey.kid,
         signKey: privateKeyPKCS8,
         expiration: Math.floor(Date.now() / 1000 + 60 * 60),
       });
 
-      // Make sure to delete the authorization code from the redis store
-      // This ensures that the same code will not be used to exchange for another set of tokens
-      await redisStore.del(code);
+      // Return with refresh_token if offline_access is provided in the scopes
+      if (payload.scope.split(" ").includes("offline_access")) {
+        return c.json({
+          refresh_token: await tokenService.generateRefreshToken(user.id, client.id, payload.scope),
+          access_token: accessToken,
+          id_token: idToken,
+          token_type: "Bearer",
+          expires_in: Math.floor(Date.now() / 1000 + 60 * 60), // 1 hr
+        });
+      }
 
       // Return the token object if all checks passed
       return c.json({
@@ -107,7 +123,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
 
     // TODO: implement refresh token
     else if (grant_type === "refresh_token") {
-      // Make sure client_id and client_secret is not undefined
+      // Make sure client_id and client_secret is provided
       if (!client_id || !client_secret) {
         throw new OidcError({
           error: "invalid_client",
@@ -136,7 +152,9 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       //   return res.status(400).json({ error: "invalid_grant" });
       // }
 
-      console.log({ client });
+      const newToken = await tokenService.renewAccessToken(client_id, client_secret, refresh_token);
+
+      console.log({ client, newToken });
 
       return c.json({
         access_token: "<access_token>",
