@@ -22,6 +22,14 @@ export class RefreshTokenService {
   // Retrieve the the refreshTokenSecret that will be used in encrypting and decryptinh the refresh token
   private readonly appConfig = Environment.getServerConfig();
 
+  public async getClientAuthMethodFromRefreshToken(token: string) {
+    // Split the refresh_token delimited by a colon
+    const refreshTokenId = token.split(":")[0];
+
+    // Get client auth method by refreshTokenId
+    return await this.refreshTokenRepository.getClientAuthMethod(refreshTokenId);
+  }
+
   public async generateJWT(options: GenerateTokenOptions) {
     try {
       return await new SignJWT({
@@ -71,7 +79,7 @@ export class RefreshTokenService {
     return `${refreshToken.id}:${generatedRefreshToken}`;
   }
 
-  public async refresh(token: string) {
+  public async refresh(token: string, clientId: string) {
     try {
       const extractedToken = token.split(":");
 
@@ -85,6 +93,14 @@ export class RefreshTokenService {
         throw new OidcError({
           error: "invalid_refresh_token",
           message: "The refresh_token you provided is not valid.",
+          status: 401,
+        });
+      }
+
+      if (oldRefreshToken.clientId !== clientId) {
+        throw new OidcError({
+          error: "invalid_refresh_token_for_client",
+          message: "The refresh_token you provided is not issued to the client.",
           status: 401,
         });
       }

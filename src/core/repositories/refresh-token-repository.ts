@@ -2,8 +2,33 @@ import { db } from "@trustify/config/postgres";
 import { OidcError } from "../types/oidc-error";
 import { refreshTokens } from "@trustify/db/schema/refresh-tokens";
 import { eq } from "drizzle-orm";
+import { clients } from "@trustify/db/schema/clients";
 
 export class RefreshTokenRepository {
+  public async getClientAuthMethod(tokenId: string) {
+    try {
+      const ps = db
+        .select({ method: clients.tokenEndpointAuthMethod })
+        .from(refreshTokens)
+        .innerJoin(clients, eq(refreshTokens.clientId, clients.id))
+        .where(eq(refreshTokens.id, tokenId))
+        .prepare("get_client_auth_method_from_refresh_token");
+
+      const res = await ps.execute();
+
+      return res[0];
+    } catch (error) {
+      throw new OidcError({
+        error: "failed_query",
+        message: "Failed to execute query.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
   public async renewToken(oldTokenId: string, token: typeof refreshTokens.$inferInsert) {
     try {
       const res = await db.transaction(async (tx) => {

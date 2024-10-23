@@ -19,8 +19,8 @@ export class TokenService {
 
   public async handleClientSecretBasic(
     authorizationHeader: string | undefined,
-    challenge: z.infer<typeof AuthCodePayloadSchema>["code_challenge"],
-    verifier: z.infer<typeof TokenBodySchema>["code_verifier"],
+    challenge?: z.infer<typeof AuthCodePayloadSchema>["code_challenge"],
+    verifier?: z.infer<typeof TokenBodySchema>["code_verifier"],
   ) {
     // Check if authorization header is not undefined and if its value has 'Basic'
     if (authorizationHeader && authorizationHeader.split(" ")[0] === "Basic") {
@@ -128,19 +128,6 @@ export class TokenService {
       ...essentialClaims,
     } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
   }
-
-  // public async generateRefreshToken(
-  //   userId: string,
-  //   clientId: string,
-  //   scope: string,
-  //   claims: Omit<Partial<Nullable<SupportedClaims>>, "sub">,
-  // ) {
-  //   return await this.refreshTokenService.generateRefreshToken(userId, clientId, scope, claims);
-  // }
-
-  // public async getNewAccessToken(clientId: string, clientSecret: string, refreshToken: string) {
-  //   return await this.refreshTokenService.refresh(clientId, clientSecret, refreshToken);
-  // }
 
   private async hashCodeVerifier(codeVerifier: string) {
     try {

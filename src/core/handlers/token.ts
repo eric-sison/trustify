@@ -129,17 +129,8 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       });
     }
 
-    // TODO: implement refresh token
+    // Check if grant_type is refresh_token
     else if (grant_type === "refresh_token") {
-      // Make sure client_id and client_secret is provided
-      if (!client_id || !client_secret) {
-        throw new OidcError({
-          error: "invalid_client",
-          message: "Client not found!",
-          status: 401,
-        });
-      }
-
       // Make sure there is a refresh_token in the request body
       if (!refresh_token) {
         throw new OidcError({
@@ -149,10 +140,22 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
         });
       }
 
-      await clientService.verifyClientCredentials(client_id, client_secret);
+      // Get client auth method from refresh_token
+      const clientAuth = await refreshTokenService.getClientAuthMethodFromRefreshToken(refresh_token);
 
-      const { accessToken, refreshToken, expiration } = await refreshTokenService.refresh(refresh_token);
+      // Verify client depending on the client's token_endpoint_auth_method
+      const client =
+        clientAuth.method === "client_secret_basic"
+          ? await tokenService.handleClientSecretBasic(authorization)
+          : await tokenService.handleClientSecretPost(client_id, client_secret);
 
+      // Rotate refresh_tokens
+      const { accessToken, refreshToken, expiration } = await refreshTokenService.refresh(
+        refresh_token,
+        client.id,
+      );
+
+      // Return the tokens
       return c.json({
         access_token: accessToken,
         refresh_token: refreshToken,
