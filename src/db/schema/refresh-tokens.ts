@@ -1,19 +1,22 @@
 import { ID_LENGTH } from "@trustify/utils/constants";
-import { boolean, char, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, char, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { generateId, generateIdFromEntropySize } from "lucia";
 import { sql } from "drizzle-orm";
 import { users } from "./users";
 import { clients } from "./clients";
+import { Nullable } from "@trustify/types/nullable-type";
+import { SupportedClaims } from "@trustify/core/types/oidc-supports";
 
 export const refreshTokens = pgTable("refresh_tokens", {
   id: char("refresh_token_id", { length: ID_LENGTH })
     .primaryKey()
     .$defaultFn(() => generateId(ID_LENGTH)),
-  userId: char("user_id_fk", { length: ID_LENGTH }).references(() => users.id),
-  clientId: char("client_id_fk", { length: ID_LENGTH }).references(() => clients.id),
-  tokenFamily: char("token_family", { length: ID_LENGTH })
-    .notNull()
-    .$defaultFn(() => generateId(ID_LENGTH)),
+  userId: char("user_id_fk", { length: ID_LENGTH })
+    .references(() => users.id)
+    .notNull(),
+  clientId: char("client_id_fk", { length: ID_LENGTH })
+    .references(() => clients.id)
+    .notNull(),
   token: varchar("token")
     .unique()
     .notNull()
@@ -23,7 +26,7 @@ export const refreshTokens = pgTable("refresh_tokens", {
     .notNull()
     .default(sql`ARRAY[]::text[]`)
     .notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
+  claims: jsonb("claims").$type<Omit<Partial<Nullable<SupportedClaims>>, "sub">>(),
   issuedAt: timestamp("issued_at", {
     withTimezone: true,
     mode: "date",
@@ -34,8 +37,4 @@ export const refreshTokens = pgTable("refresh_tokens", {
     withTimezone: true,
     mode: "date",
   }).notNull(),
-  invalidatedAt: timestamp("invalidated_at", {
-    withTimezone: true,
-    mode: "date",
-  }),
 });

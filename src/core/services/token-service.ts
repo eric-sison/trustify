@@ -16,7 +16,7 @@ import { z } from "zod";
 import { RefreshTokenService } from "./refresh-token-service";
 
 export class TokenService {
-  private readonly refreshTokenService = new RefreshTokenService();
+  // private readonly refreshTokenService = new RefreshTokenService();
 
   private readonly clientService = new ClientService();
 
@@ -132,43 +132,18 @@ export class TokenService {
     } as Omit<Partial<Nullable<SupportedClaims>>, "sub">;
   }
 
-  public async generateRefreshToken(userId: string, clientId: string, scope: string) {
-    return await this.refreshTokenService.generateRefreshToken(userId, clientId, scope);
-  }
+  // public async generateRefreshToken(
+  //   userId: string,
+  //   clientId: string,
+  //   scope: string,
+  //   claims: Omit<Partial<Nullable<SupportedClaims>>, "sub">,
+  // ) {
+  //   return await this.refreshTokenService.generateRefreshToken(userId, clientId, scope, claims);
+  // }
 
-  public async generateJWT(options: GenerateTokenOptions) {
-    try {
-      return await new SignJWT({
-        iss: oidcDiscovery.issuer,
-        sub: options.subject,
-        aud: options.audience,
-        ...options.claims,
-        ...options.supportedClaims,
-        exp: options.expiration,
-        nbf: Math.floor(Date.now() / 1000),
-        iat: Math.floor(Date.now() / 1000),
-      })
-        .setProtectedHeader({
-          typ: "JWT",
-          alg: "RS256",
-          kid: options.keyId,
-        })
-        .sign(options.signKey);
-    } catch (error) {
-      throw new OidcError({
-        error: "invalid_id_token",
-        message: "Unable to generate id_token",
-        status: 400,
-
-        // @ts-expect-error error is of type unknown
-        stack: error.stack,
-      });
-    }
-  }
-
-  public async getNewAccessToken(clientId: string, clientSecret: string, refreshToken: string) {
-    return await this.refreshTokenService.refresh(clientId, clientSecret, refreshToken);
-  }
+  // public async getNewAccessToken(clientId: string, clientSecret: string, refreshToken: string) {
+  //   return await this.refreshTokenService.refresh(clientId, clientSecret, refreshToken);
+  // }
 
   private async hashCodeVerifier(codeVerifier: string) {
     try {

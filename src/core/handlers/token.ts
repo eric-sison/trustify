@@ -9,6 +9,7 @@ import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { redisStore } from "@trustify/config/redis";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { RefreshTokenService } from "../services/refresh-token-service";
 
 export const tokenHandler = new Hono<HonoAppBindings>().post(
   "/",
@@ -24,6 +25,8 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
 
     // Initialize token service
     const tokenService = new TokenService();
+
+    const refreshTokenService = new RefreshTokenService();
 
     // Initialize client service
     const clientService = new ClientService();
@@ -78,7 +81,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       await redisStore.del(code);
 
       // Generate the id_token based on the parameters acquired from previous steps
-      const idToken = await tokenService.generateJWT({
+      const idToken = await refreshTokenService.generateJWT({
         audience: client.id,
         subject: user.id,
         keyId: publicKey.kid,
@@ -92,7 +95,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       });
 
       // Similarly, generate the access_token based on the parameters acquired from previous steps
-      const accessToken = await tokenService.generateJWT({
+      const accessToken = await refreshTokenService.generateJWT({
         audience: [oidcDiscovery.userinfo_endpoint],
         subject: user.id,
         supportedClaims: { ...userinfoClaims },
@@ -104,7 +107,12 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
       // Return with refresh_token if offline_access is provided in the scopes
       if (payload.scope.split(" ").includes("offline_access")) {
         return c.json({
-          refresh_token: await tokenService.generateRefreshToken(user.id, client.id, payload.scope),
+          refresh_token: await refreshTokenService.createNewRefreshToken(
+            user.id,
+            client.id,
+            payload.scope,
+            userinfoClaims,
+          ),
           access_token: accessToken,
           id_token: idToken,
           token_type: "Bearer",
@@ -141,24 +149,15 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
         });
       }
 
-      const client = await clientService.verifyClientCredentials(client_id, client_secret);
+      await clientService.verifyClientCredentials(client_id, client_secret);
 
-      // TODO: implement this function
-      // // Get refresh_token from database
-      // const refreshToken = await tokenService.getRefreshToken();
-
-      // // If no refresh_token, expired, or revoked, throw error
-      // if (!refreshToken || refreshToken.expired || refreshToken.revoked) {
-      //   return res.status(400).json({ error: "invalid_grant" });
-      // }
-
-      await tokenService.getNewAccessToken(client_id, client_secret, refresh_token);
+      const { accessToken, refreshToken, expiration } = await refreshTokenService.refresh(refresh_token);
 
       return c.json({
-        access_token: "<access_token>",
-        refresh_token: "<refresh_token>",
+        access_token: accessToken,
+        refresh_token: refreshToken,
         token_type: "Bearer",
-        expires_in: 3600,
+        expires_in: expiration,
       });
     }
 
