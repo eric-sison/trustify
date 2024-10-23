@@ -1,5 +1,5 @@
 import { ID_LENGTH } from "@trustify/utils/constants";
-import { boolean, char, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { char, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { generateId, generateIdFromEntropySize } from "lucia";
 import { sql } from "drizzle-orm";
 import { users } from "./users";

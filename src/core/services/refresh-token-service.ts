@@ -58,7 +58,7 @@ export class RefreshTokenService {
     scope: string,
     claims: Omit<Partial<Nullable<SupportedClaims>>, "sub">,
   ) {
-    const { generatedRefreshToken, refreshToken } = this.generateRefreshToken(
+    const { generatedRefreshToken, refreshTokenToInsert } = this.generateRefreshToken(
       userId,
       clientId,
       scope,
@@ -66,77 +66,88 @@ export class RefreshTokenService {
     );
 
     // Store the refresh token in the database
-    const token = await this.refreshTokenRepository.createRefreshToken(refreshToken);
+    const refreshToken = await this.refreshTokenRepository.createRefreshToken(refreshTokenToInsert);
 
-    return `${token.id}:${generatedRefreshToken}`;
+    return `${refreshToken.id}:${generatedRefreshToken}`;
   }
 
   public async refresh(token: string) {
-    const extractedToken = token.split(":");
+    try {
+      const extractedToken = token.split(":");
 
-    const tokenId = extractedToken[0];
+      const tokenId = extractedToken[0];
 
-    const refreshToken = extractedToken[1];
+      const refreshToken = extractedToken[1];
 
-    const oldRefreshToken = await this.refreshTokenRepository.getRefreshTokenById(tokenId);
+      const oldRefreshToken = await this.refreshTokenRepository.getRefreshTokenById(tokenId);
 
-    if (!oldRefreshToken) {
+      if (!oldRefreshToken) {
+        throw new OidcError({
+          error: "invalid_refresh_token",
+          message: "The refresh_token you provided is not valid.",
+          status: 401,
+        });
+      }
+
+      const decryptedToken = this.keyStoreService.decryptKey(
+        oldRefreshToken.token,
+        this.appConfig.refreshTokenSecret,
+      );
+
+      if (refreshToken !== decryptedToken) {
+        throw new OidcError({
+          error: "invalid_refresh_token",
+          message: "The refresh_token you provided is not valid.",
+          status: 401,
+        });
+      }
+
+      if (!isWithinExpirationDate(oldRefreshToken.expiresAt)) {
+        throw new OidcError({
+          error: "refresh_token_expired",
+          message: "The refresh_token you provided is expired.",
+          status: 401,
+        });
+      }
+
+      const { privateKeyPKCS8, publicKey } = await this.keyStoreService.extractKeysFromCurrent();
+
+      const generatedToken = this.generateRefreshToken(
+        oldRefreshToken.userId,
+        oldRefreshToken.clientId,
+        oldRefreshToken.scopes.join(" "),
+        oldRefreshToken.claims,
+      );
+
+      const newRefreshToken = await this.refreshTokenRepository.renewToken(
+        oldRefreshToken.id,
+        generatedToken.refreshTokenToInsert,
+      );
+
+      const accessToken = await this.generateJWT({
+        audience: [oidcDiscovery.issuer],
+        subject: oldRefreshToken.userId,
+        supportedClaims: { ...oldRefreshToken.claims },
+        keyId: publicKey.kid,
+        signKey: privateKeyPKCS8,
+        expiration: Math.floor(Date.now() / 1000 + 60 * 60),
+      });
+
+      return {
+        accessToken,
+        refreshToken: `${newRefreshToken.id}:${generatedToken.generatedRefreshToken}`,
+        expiration: Math.floor(Date.now() / 1000 + 60 * 60),
+      };
+    } catch (error) {
       throw new OidcError({
-        error: "invalid_refresh_token",
-        message: "The refresh_token you provided is not valid.",
-        status: 401,
+        error: "refresh_token_failed",
+        message: "Failed to generate refresh token.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
       });
     }
-
-    const decryptedToken = this.keyStoreService.decryptKey(
-      oldRefreshToken.token,
-      this.appConfig.refreshTokenSecret,
-    );
-
-    if (refreshToken !== decryptedToken) {
-      throw new OidcError({
-        error: "invalid_refresh_token",
-        message: "The refresh_token you provided is not valid.",
-        status: 401,
-      });
-    }
-
-    if (!isWithinExpirationDate(oldRefreshToken.expiresAt)) {
-      throw new OidcError({
-        error: "refresh_token_expired",
-        message: "The refresh_token you provided is expired.",
-        status: 401,
-      });
-    }
-
-    const { privateKeyPKCS8, publicKey } = await this.keyStoreService.extractKeysFromCurrent();
-
-    const generatedToken = this.generateRefreshToken(
-      oldRefreshToken.userId,
-      oldRefreshToken.clientId,
-      oldRefreshToken.scopes.join(" "),
-      oldRefreshToken.claims,
-    );
-
-    const newRefreshToken = await this.refreshTokenRepository.renewToken(
-      oldRefreshToken.id,
-      generatedToken.refreshToken,
-    );
-
-    const accessToken = await this.generateJWT({
-      audience: [oidcDiscovery.issuer],
-      subject: oldRefreshToken.userId,
-      supportedClaims: { ...oldRefreshToken.claims },
-      keyId: publicKey.kid,
-      signKey: privateKeyPKCS8,
-      expiration: Math.floor(Date.now() / 1000 + 60 * 60),
-    });
-
-    return {
-      accessToken,
-      refreshToken: `${newRefreshToken.id}:${generatedToken.generatedRefreshToken}`,
-      expiration: Math.floor(Date.now() / 1000 + 60 * 60),
-    };
   }
 
   // Generate a new refresh_token upon successful code exchange
@@ -163,7 +174,7 @@ export class RefreshTokenService {
       );
 
       // Add additional data for storing refresh token in the database
-      const refreshToken: typeof refreshTokens.$inferInsert = {
+      const refreshTokenToInsert: typeof refreshTokens.$inferInsert = {
         token: encryptedToken,
         userId,
         clientId,
@@ -174,13 +185,13 @@ export class RefreshTokenService {
 
       // Return the generated refresh token
       // Note that the returned token is the one that is not encrypted
-      return { generatedRefreshToken, refreshToken };
+      return { generatedRefreshToken, refreshTokenToInsert };
 
       // Handle resulting error
     } catch (error) {
       throw new OidcError({
         error: "refresh_token_failed",
-        message: "Failed to generate refresh token.",
+        message: "Failed to generate new refresh token.",
         status: 500,
 
         // @ts-expect-error error is of type unknown
