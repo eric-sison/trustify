@@ -1,4 +1,5 @@
 import { TokenHeaderSchema, TokenBodySchema } from "@trustify/core/schemas/token-schema";
+import { RefreshTokenService } from "@trustify/core/services/refresh-token-service";
 import { ClientService } from "@trustify/core/services/client-service";
 import { KeyStoreService } from "@trustify/core/services/keystore-service";
 import { HonoAppBindings } from "@trustify/app/api/[[...route]]/route";
@@ -9,7 +10,6 @@ import { oidcDiscovery } from "@trustify/config/oidc-discovery";
 import { redisStore } from "@trustify/config/redis";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { RefreshTokenService } from "../services/refresh-token-service";
 
 export const tokenHandler = new Hono<HonoAppBindings>().post(
   "/",

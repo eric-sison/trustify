@@ -12,6 +12,8 @@ import { Session } from "lucia";
 import { tokenHandler } from "@trustify/core/handlers/token";
 import { keystoreHandler } from "@trustify/core/handlers/keystore";
 import { userInfoHandler } from "@trustify/core/handlers/userinfo";
+import { cors } from "hono/cors";
+import { Environment } from "@trustify/config/environment";
 
 export type HonoAppBindings = {
   Variables: {
@@ -22,6 +24,17 @@ export type HonoAppBindings = {
 };
 
 const app = new Hono<HonoAppBindings>().basePath("/api");
+
+const appConfig = Environment.getServerConfig();
+
+app.use(
+  cors({
+    credentials: true,
+    origin: [appConfig.host],
+    allowHeaders: ["Origin", "Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  }),
+);
 
 app.use(pinoLogger());
 

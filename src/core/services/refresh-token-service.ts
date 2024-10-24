@@ -1,15 +1,15 @@
-import { RefreshTokenRepository } from "../repositories/refresh-token-repository";
-import { KeyStoreService } from "./keystore-service";
+import { RefreshTokenRepository } from "@trustify/core/repositories/refresh-token-repository";
+import { KeyStoreService } from "@trustify/core/services/keystore-service";
 import { Environment } from "@trustify/config/environment";
 import { refreshTokens } from "@trustify/db/schema/refresh-tokens";
-import { TimeSpan } from "lucia";
 import { createDate, isWithinExpirationDate } from "oslo";
 import { generateRandomString } from "oslo/crypto";
-import { OidcError } from "../types/oidc-error";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { Nullable } from "@trustify/types/nullable-type";
-import { SupportedClaims } from "../types/oidc-supports";
+import { SupportedClaims } from "@trustify/core/types/oidc-supports";
 import { oidcDiscovery } from "@trustify/config/oidc-discovery";
-import { GenerateTokenOptions } from "../types/tokens";
+import { GenerateTokenOptions } from "@trustify/core/types/tokens";
+import { TimeSpan } from "lucia";
 import { SignJWT } from "jose";
 
 export class RefreshTokenService {
@@ -81,14 +81,23 @@ export class RefreshTokenService {
 
   public async refresh(token: string, clientId: string) {
     try {
+      // Extract the token by splitting it with the colon (:) delimeter
+      // The first element in the array is the tokenId, and the second
+      // element represents the actual refresh token
       const extractedToken = token.split(":");
 
+      // Get the tokenId
       const tokenId = extractedToken[0];
 
+      // Get the refreshToken
       const refreshToken = extractedToken[1];
 
+      // The existing refreshToken from the database will be considered as
+      // the old refresh token, because it will be replaced by the newly generated
+      // token, so that it will no longer be reused to refresh new access tokens
       const oldRefreshToken = await this.refreshTokenRepository.getRefreshTokenById(tokenId);
 
+      // Throw an error if the token with the tokenId does not exist in the database
       if (!oldRefreshToken) {
         throw new OidcError({
           error: "invalid_refresh_token",
@@ -97,6 +106,8 @@ export class RefreshTokenService {
         });
       }
 
+      // Make sure that the old refresh token was intended for the provided clientId
+      // Throw an error otherwise
       if (oldRefreshToken.clientId !== clientId) {
         throw new OidcError({
           error: "invalid_refresh_token_for_client",
@@ -105,11 +116,14 @@ export class RefreshTokenService {
         });
       }
 
+      // Decrypt the token from the databse
       const decryptedToken = this.keyStoreService.decryptKey(
         oldRefreshToken.token,
         this.appConfig.refreshTokenSecret,
       );
 
+      // Check if the refresh token passed by the client is equal to the
+      // decrypted refresh token from the database
       if (refreshToken !== decryptedToken) {
         throw new OidcError({
           error: "invalid_refresh_token",
@@ -118,6 +132,7 @@ export class RefreshTokenService {
         });
       }
 
+      // Throw an error if the old refresh token is expired
       if (!isWithinExpirationDate(oldRefreshToken.expiresAt)) {
         throw new OidcError({
           error: "refresh_token_expired",
@@ -126,8 +141,10 @@ export class RefreshTokenService {
         });
       }
 
+      // Extract the private key and public key from the database with the status of "current"
       const { privateKeyPKCS8, publicKey } = await this.keyStoreService.extractKeysFromCurrent();
 
+      // Generate a new refresh token. This will replace the old refresh token from the database
       const generatedToken = this.generateRefreshToken(
         oldRefreshToken.userId,
         oldRefreshToken.clientId,
@@ -135,11 +152,13 @@ export class RefreshTokenService {
         oldRefreshToken.claims,
       );
 
+      // Remove the old token, and replace with the newly generated refresh token
       const newRefreshToken = await this.refreshTokenRepository.renewToken(
         oldRefreshToken.id,
         generatedToken.refreshTokenToInsert,
       );
 
+      // Generate the new access token
       const accessToken = await this.generateJWT({
         audience: [oidcDiscovery.issuer],
         subject: oldRefreshToken.userId,
@@ -149,11 +168,14 @@ export class RefreshTokenService {
         expiration: Math.floor(Date.now() / 1000 + 60 * 60),
       });
 
+      // Return the new access token and new refresh token
       return {
         accessToken,
         refreshToken: `${newRefreshToken.id}:${generatedToken.generatedRefreshToken}`,
         expiration: Math.floor(Date.now() / 1000 + 60 * 60),
       };
+
+      // Handle any error
     } catch (error) {
       throw new OidcError({
         error: "refresh_token_failed",
