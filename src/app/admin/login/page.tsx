@@ -4,6 +4,11 @@ import Link from "next/link";
 import { Button } from "@trustify/components/ui/Button";
 import { Input } from "@trustify/components/ui/Input";
 import { Label } from "@trustify/components/ui/Label";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Login",
+};
 
 export default function AdminLogin() {
   return (
