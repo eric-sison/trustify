@@ -140,7 +140,7 @@ const data = {
       icon: Link2,
     },
     {
-      title: "Key Rotations",
+      title: "Keys Rotation",
       url: "/admin/keys",
       icon: KeyRound,
     },
