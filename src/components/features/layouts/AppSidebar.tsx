@@ -51,6 +51,7 @@ import {
   DropdownMenuTrigger,
 } from "@trustify/components/ui/DropdownMenu";
 import { usePathname } from "next/navigation";
+import { AppTopbar } from "./AppTopbar";
 
 const data = {
   user: {
@@ -154,7 +155,7 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
 
   return (
     <>
-      <Sidebar>
+      <Sidebar collapsible="none">
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -329,7 +330,10 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+        <AppTopbar />
+        {children}
+      </SidebarInset>
     </>
   );
 };
