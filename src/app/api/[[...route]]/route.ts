@@ -25,12 +25,12 @@ export type HonoAppBindings = {
 
 const app = new Hono<HonoAppBindings>().basePath("/api");
 
-const appConfig = Environment.getServerConfig();
+const appConfig = Environment.getPublicConfig();
 
 app.use(
   cors({
     credentials: true,
-    origin: [appConfig.host],
+    origin: [appConfig.adminHost],
     allowHeaders: ["Origin", "Content-Type", "Authorization"],
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   }),

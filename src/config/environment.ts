@@ -4,7 +4,6 @@ import { validateEnv } from "@trustify/utils/validate-env";
 export class Environment {
   public static getServerConfig() {
     const appEnv = {
-      host: process.env.HOST!,
       dbHost: process.env.DB_HOST!,
       dbPort: parseInt(process.env.DB_PORT!),
       dbUser: process.env.DB_USER!,
