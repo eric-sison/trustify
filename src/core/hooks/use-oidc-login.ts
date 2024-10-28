@@ -3,18 +3,25 @@
 import { useMutation } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { useRouter } from "next/navigation";
-import { UseFormReturn } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export const useOIDCLogin = (
-  form: UseFormReturn<z.infer<typeof LoginFormSchema>, unknown, undefined>,
-  loginRequest: z.infer<typeof LoginRequestSchema>,
-) => {
+export const useOIDCLogin = (loginRequest: z.infer<typeof LoginRequestSchema>) => {
   // initialize login rpc client
   const $login = rpcClient.api.v1.oidc.login.$post;
+
+  // Initialize login form
+  const form = useForm<z.infer<typeof LoginFormSchema>>({
+    resolver: zodResolver(LoginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   // initialize router - to be used to redirect user to /consent once login is successful
   const router = useRouter();
@@ -92,5 +99,9 @@ export const useOIDCLogin = (
     },
   });
 
-  return { data, error, mutate };
+  const submit = (values: z.infer<typeof LoginFormSchema>) => {
+    mutate(values);
+  };
+
+  return { data, error, form, submit };
 };

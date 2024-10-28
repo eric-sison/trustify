@@ -33,19 +33,7 @@ import {
 export type OidcLoginFormProps = z.infer<typeof LoginRequestSchema>;
 
 export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
-  const form = useForm<z.infer<typeof LoginFormSchema>>({
-    resolver: zodResolver(LoginFormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const login = useOIDCLogin(form, loginRequest);
-
-  const onSubmit = (values: z.infer<typeof LoginFormSchema>) => {
-    login.mutate(values);
-  };
+  const login = useOIDCLogin(loginRequest);
 
   return (
     <div className="space-y-5">
@@ -54,8 +42,8 @@ export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
           <AlertDescription className="font-semibold">{login.error.message}</AlertDescription>
         </Alert>
       )}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+      <Form {...login.form}>
+        <form onSubmit={login.form.handleSubmit(login.submit)}>
           <Card className="w-full max-w-sm">
             <CardHeader>
               <CardTitle className="text-2xl">Trustify</CardTitle>
@@ -63,7 +51,7 @@ export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
             </CardHeader>
             <CardContent className="grid gap-7">
               <FormField
-                control={form.control}
+                control={login.form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -88,7 +76,7 @@ export const OidcLoginForm: React.FC<OidcLoginFormProps> = (loginRequest) => {
               />
 
               <FormField
-                control={form.control}
+                control={login.form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
