@@ -1,9 +1,7 @@
 "use client";
 
-import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
+import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useOIDCLogin } from "@trustify/core/hooks/use-oidc-login";
 import {

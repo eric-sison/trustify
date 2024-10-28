@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { useRouter } from "next/navigation";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { rpcClient } from "@trustify/utils/rpc-client";
