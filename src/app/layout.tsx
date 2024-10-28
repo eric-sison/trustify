@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@trustify/components/providers/QueryClientProvider";
 import { ThemeProvider } from "@trustify/components/providers/ThemeProvider";
-import { ThemePickerDropdown } from "@trustify/components/features/utils/ThemePickerDropdown";
+// import { ThemePickerDropdown } from "@trustify/components/features/utils/ThemePickerDropdown";
 import type { PropsWithChildren } from "react";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -21,17 +21,7 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} h-screen w-screen antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="relative">
-            <div className="absolute left-10 top-10">
-              <ThemePickerDropdown />
-            </div>
-          </div>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryClientProvider>{children}</QueryClientProvider>
         </ThemeProvider>
       </body>
