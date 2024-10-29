@@ -14,6 +14,7 @@ import { keystoreHandler } from "@trustify/core/handlers/keystore";
 import { userInfoHandler } from "@trustify/core/handlers/userinfo";
 import { cors } from "hono/cors";
 import { Environment } from "@trustify/config/environment";
+import { usersHandler } from "@trustify/core/handlers/users";
 
 export type HonoAppBindings = {
   Variables: {
@@ -30,7 +31,7 @@ const appConfig = Environment.getPublicConfig();
 app.use(
   cors({
     credentials: true,
-    origin: [appConfig.adminHost],
+    origin: [appConfig.adminHost, "https://trustify.gscwd.app"],
     allowHeaders: ["Origin", "Content-Type", "Authorization"],
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   }),
@@ -49,7 +50,8 @@ const routes = app
   .route("/v1/userinfo", userInfoHandler)
   .route("/v1/oidc", authenticationHandler)
   .route("/v1/token", tokenHandler)
-  .route("/v1/keystore", keystoreHandler);
+  .route("/v1/keystore", keystoreHandler)
+  .route("/v1/users", usersHandler);
 
 export const GET = handle(app);
 export const POST = handle(app);

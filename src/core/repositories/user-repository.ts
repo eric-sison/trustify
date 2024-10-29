@@ -4,6 +4,51 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { sql, eq } from "drizzle-orm";
 
 export class UserRepository {
+  public async getAllUsers() {
+    try {
+      const ps = db
+        .select({
+          id: users.id,
+          role: users.role,
+          email: users.email,
+          givenName: users.givenName,
+          middleName: users.middleName,
+          familyName: users.familyName,
+          nickname: users.nickname,
+          preferredUsername: users.preferredUsername,
+          profile: users.profile,
+          picture: users.picture,
+          website: users.website,
+          emailVerified: users.emailVerified,
+          suspended: users.suspended,
+          gender: users.gender,
+          birthdate: users.birthdate,
+          locale: users.locale,
+          zoneinfo: users.zoneinfo,
+          phoneNumber: users.phoneNumber,
+          phoneNumberVerified: users.phoneNumberVerified,
+          address: users.address,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .prepare("get_all_users");
+
+      const result = await ps.execute();
+
+      return result;
+    } catch (error) {
+      throw new OidcError({
+        error: "failed_query",
+        message: "Failed to execute query.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
   public async getUserById(userId: string) {
     try {
       const ps = db

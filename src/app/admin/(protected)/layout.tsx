@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function DashboardLayout({ children }: PropsWithChildren) {
   return (
-    <SidebarProvider className="h-full w-full">
+    <SidebarProvider className="h-full w-full overflow-y-hidden">
       <AppSidebar>{children}</AppSidebar>
     </SidebarProvider>
   );

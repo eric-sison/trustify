@@ -77,10 +77,14 @@ export function DataTableFacetedFilter<TData, TValue>({
                     <CommandItem
                       key={index}
                       onSelect={() => {
-                        isSelected ? selectedValues.delete(list) : selectedValues.add(list);
+                        //isSelected ? selectedValues.delete(list) : selectedValues.add(list);
+                        if (isSelected) {
+                          selectedValues.delete(list);
+                        } else {
+                          selectedValues.add(list);
+                        }
 
                         const filterValues = Array.from(selectedValues);
-
                         column?.setFilterValue(filterValues.length ? filterValues : undefined);
                       }}
                     >

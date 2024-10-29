@@ -5,6 +5,10 @@ import { verifyHash } from "@trustify/utils/hash-fns";
 export class UserService {
   private readonly userRepository = new UserRepository();
 
+  public async getAllUsers() {
+    return await this.userRepository.getAllUsers();
+  }
+
   public async getUserById(userId: string) {
     // Get the user by ID
     const user = await this.userRepository.getUserById(userId);
