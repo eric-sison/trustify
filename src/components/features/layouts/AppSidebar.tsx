@@ -10,6 +10,7 @@ import {
   CircleUserRound,
   Command,
   Cookie,
+  FileKey2,
   FilePen,
   GalleryVerticalEnd,
   KeyRound,
@@ -19,6 +20,7 @@ import {
   MailCheck,
   PieChart,
   Plus,
+  ScreenShare,
   Settings2,
   ShieldCheck,
   SquareMousePointer,
@@ -93,9 +95,9 @@ const data = {
       icon: FilePen,
     },
     {
-      title: "App Settings",
+      title: "Applications",
       url: "/admin/settings",
-      icon: Settings2,
+      icon: ScreenShare,
     },
   ],
 
@@ -144,9 +146,9 @@ const data = {
       icon: Link2,
     },
     {
-      title: "Keys Rotation",
+      title: "Key Management",
       url: "/admin/keys",
-      icon: KeyRound,
+      icon: FileKey2,
     },
   ],
 };

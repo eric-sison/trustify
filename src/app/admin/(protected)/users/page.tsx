@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { Button } from "@trustify/components/ui/Button";
 import { UsersDataTable } from "@trustify/components/features/tables/users-table/UsersDataTable";
 import { CreateUserDialog } from "@trustify/components/features/CreateUserDialog";
 
@@ -12,9 +11,7 @@ export default async function UsersPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">Users</h2>
-
-        {/* <CreateUserDialog /> */}
-        <Button>Create User</Button>
+        <CreateUserDialog />
       </div>
       <UsersDataTable />
     </div>

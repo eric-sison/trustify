@@ -32,14 +32,12 @@ import { UserPlus } from "lucide-react";
 import { Input } from "../ui/Input";
 
 export const CreateUserDialog: FunctionComponent = () => {
-  const { theme } = useTheme();
-
   const form = useForm();
 
   return (
     <Dialog modal>
       <DialogTrigger asChild>
-        <Button variant={theme === "dark" ? "secondary" : "default"}>Create User</Button>
+        <Button variant="secondary">Create User</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

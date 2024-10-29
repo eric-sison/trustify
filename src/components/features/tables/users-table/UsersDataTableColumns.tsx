@@ -20,11 +20,11 @@ type UserColumn = {
   id: string;
   role: (typeof USER_ROLES)[number];
   email: string;
-  givenName: string;
-  middleName: string;
-  familyName: string;
+  givenName: string | null;
+  middleName: string | null;
+  familyName: string | null;
   nickname: string | null;
-  preferredUsername: string | null;
+  preferredUsername: string;
   profile: string | null;
   picture: string | null;
   website: string | null;
@@ -34,7 +34,7 @@ type UserColumn = {
   birthdate: string | null;
   locale: string | null;
   zoneinfo: string | null;
-  phoneNumber: string | null;
+  phoneNumber: string;
   phoneNumberVerified: boolean;
   address: z.infer<typeof UserAddressSchema> | null;
   createdAt: string;
@@ -91,10 +91,10 @@ export const useUserDataTableColumns = () => {
       cell: ({ row }) => {
         return (
           <Avatar>
-            <AvatarImage src={row.getValue("picture")} />
-            <AvatarFallback className="font-semibold tracking-wider">
-              {row.original.givenName.charAt(0)}
-              {row.original.familyName.charAt(0)}
+            <AvatarImage src={row.getValue("picture")} alt={row.getValue("preferredUsername")} />
+            <AvatarFallback className="font-semibold uppercase">
+              {row.original.email.charAt(0)}
+              {row.original.email.charAt(1)}
             </AvatarFallback>
           </Avatar>
         );
@@ -126,14 +126,24 @@ export const useUserDataTableColumns = () => {
         return (
           <div className="max-w-56 space-y-1">
             <h3 className="truncate">{row.original.email}</h3>
-            {row.original.emailVerified ? (
-              <Badge variant="success">Verified</Badge>
-            ) : (
-              <Badge variant="destructive">Not Verified</Badge>
-            )}
           </div>
         );
       },
+    },
+
+    {
+      accessorKey: "emailVerified",
+      accessorFn: (column) => column.emailVerified.toString(),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      cell: ({ row }) => {
+        return row.original.emailVerified ? (
+          <Badge variant="success">Verified</Badge>
+        ) : (
+          <Badge variant="destructive">Not Verified</Badge>
+        );
+      },
+      enableHiding: false,
+      enableColumnFilter: false,
     },
 
     {

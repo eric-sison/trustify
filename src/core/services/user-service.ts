@@ -1,9 +1,19 @@
 import { UserRepository } from "@trustify/core/repositories/user-repository";
 import { OidcError } from "@trustify/core/types/oidc-error";
-import { verifyHash } from "@trustify/utils/hash-fns";
+import { createHash, verifyHash } from "@trustify/utils/hash-fns";
+import { z } from "zod";
+import { UserRegistrationFormSchema } from "../schemas/auth-schema";
 
 export class UserService {
   private readonly userRepository = new UserRepository();
+
+  public async register(userInfo: z.infer<typeof UserRegistrationFormSchema>) {
+    const hashedPw = await createHash(userInfo.password);
+
+    const newUser = await this.userRepository.createUser({ ...userInfo, password: hashedPw });
+
+    return newUser;
+  }
 
   public async getAllUsers() {
     return await this.userRepository.getAllUsers();

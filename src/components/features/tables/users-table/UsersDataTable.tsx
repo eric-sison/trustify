@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@trustify/components/ui/data-table/DataTable";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { FunctionComponent } from "react";
-import { Skeleton } from "@trustify/components/ui/Skeleton";
 import { useUserDataTableColumns } from "./UsersDataTableColumns";
 
 export const UsersDataTable: FunctionComponent = () => {
