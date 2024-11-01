@@ -84,37 +84,37 @@ const data = {
   main: [
     {
       title: "Dashboard",
-      url: "/admin",
+      url: "/dashboard",
       icon: PieChart,
     },
     {
       title: "Audit Logs",
-      url: "/admin/logs",
+      url: "/logs",
       icon: FilePen,
     },
     {
       title: "Applications",
-      url: "/admin/applications",
+      url: "/applications",
       icon: ScreenShare,
     },
     {
       title: "Users",
-      url: "/admin/users",
+      url: "/users",
       icon: Users,
     },
     {
       title: "Sessions",
-      url: "/admin/sessions",
+      url: "/sessions",
       icon: Cookie,
     },
     {
       title: "Authentication",
-      url: "/admin/authentication",
+      url: "/authentication",
       icon: Lock,
     },
     {
       title: "Permissions",
-      url: "/admin/permissions",
+      url: "/permissions",
       icon: ShieldCheck,
     },
   ],
@@ -122,27 +122,27 @@ const data = {
   config: [
     {
       title: "Email",
-      url: "/admin/email",
+      url: "/email",
       icon: MailCheck,
     },
     {
       title: "SMS",
-      url: "/admin/sms",
+      url: "/sms",
       icon: SquareMousePointer,
     },
     {
       title: "Webhooks",
-      url: "/admin/webhooks",
+      url: "/webhooks",
       icon: Webhook,
     },
     {
       title: "Domains",
-      url: "/admin/domains",
+      url: "/domains",
       icon: Link2,
     },
     {
       title: "Key Management",
-      url: "/admin/keys",
+      url: "/keys",
       icon: FileKey2,
     },
   ],
