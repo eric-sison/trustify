@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "App Settings",
+  title: "Applications",
 };
 
 export default function SettingsPage() {
-  return <div>Settings</div>;
+  return <div>Applications</div>;
 }

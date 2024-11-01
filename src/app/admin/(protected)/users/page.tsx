@@ -1,6 +1,6 @@
+import { UsersDataTable } from "@trustify/components/features/register-user/UsersDataTable";
+import { CreateUserDialog } from "@trustify/components/features/register-user/CreateUserDialog";
 import { Metadata } from "next";
-import { UsersDataTable } from "@trustify/components/features/tables/users-table/UsersDataTable";
-import { CreateUserDialog } from "@trustify/components/features/CreateUserDialog";
 
 export const metadata: Metadata = {
   title: "Users",

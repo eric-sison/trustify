@@ -9,7 +9,6 @@ import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
 import { DataTableRowActions } from "./UsersDataTableRowActions";
 import { z } from "zod";
-import { MailWarning } from "lucide-react";
 
 export type UserColumn = {
   id: string;
@@ -98,8 +97,7 @@ export const columns: ColumnDef<UserColumn, unknown>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
     cell: ({ row }) => {
       return (
-        <div className="flex max-w-56 items-center gap-2">
-          {!row.original.emailVerified && <MailWarning className="h-4 w-4 text-orange-500" />}
+        <div className="flex max-w-56">
           <h3 className="truncate">{row.original.email}</h3>
         </div>
       );

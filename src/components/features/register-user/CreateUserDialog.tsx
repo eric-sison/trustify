@@ -20,12 +20,12 @@ import {
   FormMessage,
 } from "@trustify/components/ui/Form";
 import { UserPlus } from "lucide-react";
-import { Input } from "../ui/Input";
+import { Input } from "@trustify/components/ui/Input";
 import { PasswordInput } from "@trustify/components/ui/PasswordInput";
 import { Switch } from "@trustify/components/ui/Switch";
-import { Label } from "../ui/Label";
+import { Label } from "@trustify/components/ui/Label";
 import { useUserRegistration } from "@trustify/core/hooks/use-user-registration";
-import { LoadingSpinner } from "../ui/LoadingSpinner";
+import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const CreateUserDialog: FunctionComponent = () => {
   const [open, setOpen] = useState(false);

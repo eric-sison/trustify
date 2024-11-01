@@ -94,7 +94,7 @@ const data = {
     },
     {
       title: "Applications",
-      url: "/admin/settings",
+      url: "/admin/applications",
       icon: ScreenShare,
     },
     {
