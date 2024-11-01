@@ -13,7 +13,6 @@ import {
   FileKey2,
   FilePen,
   GalleryVerticalEnd,
-  KeyRound,
   Link2,
   Lock,
   LogOut,
@@ -21,7 +20,6 @@ import {
   PieChart,
   Plus,
   ScreenShare,
-  Settings2,
   ShieldCheck,
   SquareMousePointer,
   Users,
@@ -99,9 +97,6 @@ const data = {
       url: "/admin/settings",
       icon: ScreenShare,
     },
-  ],
-
-  users: [
     {
       title: "Users",
       url: "/admin/users",
@@ -172,7 +167,7 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
                     size="lg"
-                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="space-x-1 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <div className="flex aspect-square size-8 flex-shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                       <activeApp.logo className="size-4 flex-shrink-0" />
@@ -223,42 +218,6 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
             <SidebarGroupContent>
               <SidebarMenu>
                 {data.main.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    {state === "collapsed" ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <SidebarMenuButton
-                              isActive={pathName === item.url}
-                              onClick={() => router.push(item.url)}
-                            >
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </SidebarMenuButton>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">{item.title}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <SidebarMenuButton
-                        isActive={pathName === item.url}
-                        onClick={() => router.push(item.url)}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel className="uppercase tracking-widest">Users</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {data.users.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     {state === "collapsed" ? (
                       <TooltipProvider>

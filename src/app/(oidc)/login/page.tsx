@@ -26,6 +26,8 @@ export default async function OidcLogin(props: PageProps<string, z.infer<typeof 
   // Validate session to check if there is an active session
   const session = await validateSession();
 
+  console.log({ session });
+
   // If there is an active session and the client did not supply a prompt, redirect the
   // user agent either to /consent, or back to the repecified redirect_uri
   if (session && !parsedParams.data.prompt) {

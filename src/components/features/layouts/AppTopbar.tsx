@@ -8,10 +8,10 @@ import {
   BreadcrumbSeparator,
 } from "@trustify/components/ui/Breadcrumb";
 import { Separator } from "@trustify/components/ui/Separator";
-import { SidebarTrigger } from "@trustify/components/ui/Sidebar";
 import { usePathname } from "next/navigation";
 import { Fragment, FunctionComponent } from "react";
 import { ThemePickerDropdown } from "../utils/ThemePickerDropdown";
+import { SidebarCustomTrigger } from "@trustify/components/ui/SidebarCustomTrigger";
 
 export const AppTopbar: FunctionComponent = () => {
   const pathName = usePathname();
@@ -21,7 +21,8 @@ export const AppTopbar: FunctionComponent = () => {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
       <div className="flex items-center gap-2 px-4">
-        <SidebarTrigger className="h-5 w-5" />
+        {/* <SidebarTrigger className="h-5 w-5" /> */}
+        <SidebarCustomTrigger />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Breadcrumb>
           <BreadcrumbList>

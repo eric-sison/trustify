@@ -21,6 +21,7 @@ export type HonoAppBindings = {
     logger: PinoLogger;
     user: DatabaseUserAttributes;
     session: Session;
+    requireAuth: boolean;
   };
 };
 

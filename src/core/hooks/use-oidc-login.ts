@@ -14,6 +14,9 @@ export const useOIDCLogin = (loginRequest: z.infer<typeof LoginRequestSchema>) =
   // initialize login rpc client
   const $login = rpcClient.api.v1.oidc.login.$post;
 
+  // initialize router - to be used to redirect user to /consent once login is successful
+  const router = useRouter();
+
   // Initialize login form
   const form = useForm<z.infer<typeof LoginFormSchema>>({
     resolver: zodResolver(LoginFormSchema),
@@ -22,9 +25,6 @@ export const useOIDCLogin = (loginRequest: z.infer<typeof LoginRequestSchema>) =
       password: "",
     },
   });
-
-  // initialize router - to be used to redirect user to /consent once login is successful
-  const router = useRouter();
 
   const { data, error, mutate } = useMutation<
     InferResponseType<typeof $login>,

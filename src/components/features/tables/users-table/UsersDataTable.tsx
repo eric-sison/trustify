@@ -4,12 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@trustify/components/ui/data-table/DataTable";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { FunctionComponent } from "react";
-import { useUserDataTableColumns } from "./UsersDataTableColumns";
+import { columns } from "./UsersDataTableColumns";
 
 export const UsersDataTable: FunctionComponent = () => {
   const $users = rpcClient.api.v1.users.$get;
-
-  const { columns } = useUserDataTableColumns();
 
   const { data } = useQuery({
     queryKey: ["get_all_users"],
@@ -25,6 +23,7 @@ export const UsersDataTable: FunctionComponent = () => {
   });
 
   if (data) {
-    return <DataTable data={data} columns={columns} />;
+     return <DataTable data={data} columns={columns} />;
+    // return <div>Users Table</div>
   }
 };

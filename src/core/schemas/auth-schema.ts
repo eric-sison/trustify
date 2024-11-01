@@ -43,7 +43,17 @@ export const UserRegistrationFormSchema = z.object({
     message: "Password must be at least 8 characters long.",
   }),
   preferredUsername: z.string().min(5, {
-    message: "Username must be at least 8 characters long",
+    message: "Username must be at least 5 characters long.",
   }),
-  phoneNumber: z.string(),
+  phoneNumber: z.string().min(1, {
+    message: "Please provide a mobile number.",
+  }),
+  emailVerified: z.boolean(),
+  // emailVerified: z
+  //   .string()
+  //   .refine((val) => val === "true" || val === "false", {
+  //     message: "emailVerified must be a boolean-like string",
+  //   })
+  //   .transform((val) => val === "true"),
+  // emailVerified: z.union([z.literal("true"), z.literal("false")]),
 });

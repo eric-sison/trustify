@@ -1,6 +1,6 @@
 "use client";
 
-import { FunctionComponent } from "react";
+import { FunctionComponent, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@trustify/components/ui/Dialog";
-import { Separator } from "@trustify/components/ui/Separator";
 import { Button } from "@trustify/components/ui/Button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@trustify/components/ui/Select";
-import { useTheme } from "next-themes";
 import {
   Form,
   FormControl,
@@ -26,134 +17,149 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@trustify/components/ui/Form";
-import { useForm } from "react-hook-form";
 import { UserPlus } from "lucide-react";
 import { Input } from "../ui/Input";
+import { PasswordInput } from "@trustify/components/ui/PasswordInput";
+import { Switch } from "@trustify/components/ui/Switch";
+import { Label } from "../ui/Label";
+import { useUserRegistration } from "@trustify/core/hooks/use-user-registration";
+import { LoadingSpinner } from "../ui/LoadingSpinner";
 
 export const CreateUserDialog: FunctionComponent = () => {
-  const form = useForm();
+  const [open, setOpen] = useState(false);
+
+  const { form, isPending, submit } = useUserRegistration({ controlledDialogSetter: setOpen });
 
   return (
-    <Dialog modal>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Create User</Button>
+        <Button variant="secondary" className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4" />
+          <span>Create User</span>
+        </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent onClose={() => form.reset()} onInteractOutside={() => form.reset()}>
         <DialogHeader>
           <DialogTitle asChild>
             <div className="flex items-center gap-2">
-              <UserPlus />
               <h3>Create User</h3>
             </div>
           </DialogTitle>
-          {/* <DialogDescription>
-            Please enter the necessary information to complete the registration of a new user.
-          </DialogDescription> */}
+          <DialogDescription>Register a new user.</DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
         <Form {...form}>
-          <form>
+          <form className="mt-2" onSubmit={form.handleSubmit(submit)}>
             <section className="space-y-4">
-              {/* <FormField
-                name="given_name"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="user_role">User Role</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger id="user_role">
-                            <SelectValue placeholder="Select the role for this user" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="client">Client</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              /> */}
-
               <FormField
-                name="given_name"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="given_name">First Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="given_name"
-                        placeholder="Your given name"
-                        className="placeholder:select-none"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                name="middle_name"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="middle_name">Middle Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="middle_name"
-                        placeholder="Your middle name"
-                        className="placeholder:select-none"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                name="family_name"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="family_name">Last Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="family_name"
-                        placeholder="Your last name"
-                        className="placeholder:select-none"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {/* <FormField
                 name="email"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="email">Email Address</FormLabel>
+                    <Label htmlFor="email">Email Address</Label>
                     <FormControl>
                       <Input
                         id="email"
-                        type="email"
-                        placeholder="mail@example.com"
+                        placeholder="email@example.com"
                         className="placeholder:select-none"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
-              /> */}
+              />
 
-              <Button type="button">Next</Button>
+              <FormField
+                control={form.control}
+                name="emailVerified"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Verify Email</FormLabel>
+                      <FormDescription className="text-orange-600 dark:text-orange-400">
+                        This will bypass email verification process.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="phoneNumber"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <FormControl>
+                      <Input
+                        id="phoneNumber"
+                        placeholder="The user's currently active mobile number"
+                        className="placeholder:select-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="preferredUsername"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="preferredUsername">Username</Label>
+                    <FormControl>
+                      <Input
+                        id="preferredUsername"
+                        placeholder="@preferred_username"
+                        className="placeholder:select-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="password"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="password">Password</Label>
+                    <FormControl>
+                      <PasswordInput
+                        id="password"
+                        placeholder="At least 8 characters long"
+                        className="placeholder:select-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </section>
+
+            <section className="mt-10 flex items-center justify-end gap-2">
+              <Button disabled={isPending} className="w-full space-x-2" type="submit">
+                {isPending ? (
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner size={18} />
+                    <span>Please Wait</span>
+                  </div>
+                ) : (
+                  <span>Create User</span>
+                )}
+              </Button>
             </section>
           </form>
         </Form>

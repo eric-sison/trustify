@@ -21,12 +21,12 @@ export const PasswordInput = React.forwardRef<
             {!showPassword ? (
               <Eye
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-1 z-10 h-8 w-8 cursor-pointer bg-transparent p-2 text-gray-500"
+                className="absolute right-1 z-10 h-8 w-8 cursor-pointer bg-transparent p-1 text-gray-500"
               />
             ) : (
               <EyeOff
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-1 z-10 h-8 w-8 cursor-pointer bg-transparent p-2 text-gray-500"
+                className="absolute right-1 z-10 h-8 w-8 cursor-pointer bg-transparent p-1 text-gray-500"
               />
             )}
           </TooltipTrigger>

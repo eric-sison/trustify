@@ -10,12 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@trustify/components/ui/DropdownMenu";
+import { UserColumn } from "./UsersDataTableColumns";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
 
-export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions({ row }: DataTableRowActionsProps<UserColumn>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -25,6 +26,13 @@ export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TDa
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
+        {!row.original.emailVerified && (
+          <>
+            <DropdownMenuItem>Send Verification</DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
+
         <DropdownMenuItem onClick={() => console.log(row.original)}>View More</DropdownMenuItem>
         <DropdownMenuItem onClick={() => console.log(row.original)}>Update</DropdownMenuItem>
         <DropdownMenuSeparator />

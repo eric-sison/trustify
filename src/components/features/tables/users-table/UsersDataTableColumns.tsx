@@ -8,15 +8,10 @@ import { DataTableColumnHeader } from "@trustify/components/ui/data-table/DataTa
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
 import { DataTableRowActions } from "./UsersDataTableRowActions";
-import { Button } from "@trustify/components/ui/Button";
-import { Check, CopyIcon } from "lucide-react";
-import { TooltipContent, TooltipProvider } from "@trustify/components/ui/Tooltip";
-import { Tooltip, TooltipTrigger } from "@radix-ui/react-tooltip";
 import { z } from "zod";
-import { useState } from "react";
-import { toast } from "sonner";
+import { MailWarning } from "lucide-react";
 
-type UserColumn = {
+export type UserColumn = {
   id: string;
   role: (typeof USER_ROLES)[number];
   email: string;
@@ -41,132 +36,123 @@ type UserColumn = {
   updatedAt: string;
 };
 
-export const useUserDataTableColumns = () => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
-  };
-
-  const columns: ColumnDef<UserColumn, unknown>[] = [
-    {
-      accessorKey: "id",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="User ID" />,
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center gap-1">
-            <p>{row.original.id}</p>
-            {copied ? (
-              <div className="px-2">
-                <Check className="h-4 w-4 text-green-500" />
-              </div>
-            ) : (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="px-2 text-xs"
-                      onClick={() => {
-                        setCopied(true);
-                        handleCopy(row.original.id);
-                      }}
-                    >
-                      <CopyIcon className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copy</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-        );
-      },
+export const columns: ColumnDef<UserColumn, unknown>[] = [
+  {
+    accessorKey: "id",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="User ID" />,
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-1">
+          <Badge variant="secondary" className="text-md font-mono font-normal">
+            {row.original.id}
+          </Badge>
+        </div>
+      );
     },
+    enableSorting: false,
+  },
 
-    {
-      accessorKey: "picture",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
-      cell: ({ row }) => {
-        return (
-          <Avatar>
-            <AvatarImage src={row.getValue("picture")} alt={row.getValue("preferredUsername")} />
-            <AvatarFallback className="font-semibold uppercase">
-              {row.original.email.charAt(0)}
-              {row.original.email.charAt(1)}
-            </AvatarFallback>
-          </Avatar>
-        );
-      },
-      enableColumnFilter: false,
-      enableSorting: false,
+  {
+    accessorKey: "picture",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
+    cell: ({ row }) => {
+      return (
+        <Avatar>
+          <AvatarImage src={row.getValue("picture")} alt={row.getValue("preferredUsername")} />
+          <AvatarFallback className="font-semibold uppercase">
+            {row.original.email.charAt(0)}
+            {row.original.email.charAt(1)}
+          </AvatarFallback>
+        </Avatar>
+      );
     },
+    enableColumnFilter: false,
+    enableSorting: false,
+  },
 
-    {
-      accessorKey: "preferredUsername",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
-      cell: ({ row }) => {
-        return (
-          <div className="max-w-56">
-            <h3 className="truncate">
-              {row.original.givenName} {row.original.middleName} {row.original.familyName}
-            </h3>
-            <p className="text-muted-foreground">{row.original.preferredUsername}</p>
-          </div>
-        );
-      },
-      enableColumnFilter: false,
+  {
+    accessorKey: "preferredUsername",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
+    cell: ({ row }) => {
+      return (
+        <div className="max-w-56">
+          <h3 className="truncate">
+            {row.original.givenName} {row.original.middleName} {row.original.familyName}
+          </h3>
+          <p className="text-muted-foreground">{row.original.preferredUsername}</p>
+        </div>
+      );
     },
+    enableColumnFilter: false,
+  },
 
-    {
-      accessorKey: "email",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
-      cell: ({ row }) => {
-        return (
-          <div className="max-w-56 space-y-1">
-            <h3 className="truncate">{row.original.email}</h3>
-          </div>
-        );
-      },
+  {
+    accessorKey: "phoneNumber",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Contact Number" />,
+    cell: ({ row }) => <p>{row.original.phoneNumber}</p>,
+    enableSorting: false,
+  },
+
+  {
+    accessorKey: "email",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+    cell: ({ row }) => {
+      return (
+        <div className="flex max-w-56 items-center gap-2">
+          {!row.original.emailVerified && <MailWarning className="h-4 w-4 text-orange-500" />}
+          <h3 className="truncate">{row.original.email}</h3>
+        </div>
+      );
     },
+  },
 
-    {
-      accessorKey: "emailVerified",
-      accessorFn: (column) => column.emailVerified.toString(),
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        return row.original.emailVerified ? (
-          <Badge variant="success">Verified</Badge>
-        ) : (
-          <Badge variant="destructive">Not Verified</Badge>
-        );
-      },
-      enableHiding: false,
-      enableColumnFilter: false,
+  {
+    accessorKey: "emailVerified",
+    accessorFn: (column) => column.emailVerified.toString(),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+    cell: ({ row }) => {
+      function evaluateStatus(emailVerified: boolean, suspended: boolean) {
+        if (emailVerified && !suspended) {
+          return {
+            email: "Verified",
+            suspended: "Active",
+            status: "bg-green-500",
+          };
+        } else if (!emailVerified && suspended) {
+          return {
+            email: "Not Verified",
+            suspended: "Suspended",
+            status: "bg-rose-500",
+          };
+        } else if (!emailVerified || suspended) {
+          return {
+            email: row.original.emailVerified ? "Verified" : "Not Verified",
+            suspended: row.original.suspended ? "Suspended" : "Active",
+            status: "bg-orange-500",
+          };
+        } else {
+          return null;
+        }
+      }
+
+      const result = evaluateStatus(row.original.emailVerified, row.original.suspended);
+
+      return (
+        <div className="flex items-center gap-2">
+          <div className={`${result?.status} h-2 w-2 rounded-full`} />
+          <section className="space-x-1">
+            <Badge variant="secondary">{result?.email}</Badge>
+            <Badge variant="secondary">{result?.suspended}</Badge>
+          </section>
+        </div>
+      );
     },
+    enableHiding: false,
+    enableSorting: false,
+  },
 
-    {
-      accessorKey: "suspended",
-      accessorFn: (column) => <p className="capitalize">{column.suspended.toString()}</p>,
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Suspended" />,
-      cell: ({ row }) => (
-        <Badge variant="secondary" className="uppercase tracking-widest">
-          {`${row.original.suspended}`}
-        </Badge>
-      ),
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
-      enableSorting: false,
-      enableColumnFilter: true,
-    },
-
-    {
-      id: "actions",
-      cell: ({ row }) => <DataTableRowActions row={row} />,
-    },
-  ];
-
-  return { columns };
-};
+  {
+    id: "actions",
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  },
+];

@@ -3,6 +3,7 @@ import { LoginFormSchema, LoginRequestSchema } from "@trustify/core/schemas/auth
 import { AuthenticationService } from "@trustify/core/services/authentication-service";
 import { SessionService } from "@trustify/core/services/session-service";
 import { requireAuth } from "@trustify/core/middlewares/require-auth";
+import { OidcError } from "@trustify/core/types/oidc-error";
 import { Environment } from "@trustify/config/environment";
 import { encodeUrl } from "@trustify/utils/encode-url";
 import { zValidator } from "@hono/zod-validator";
@@ -28,58 +29,69 @@ export const authenticationHandler = new Hono<HonoAppBindings>()
       // Get the user from the credentials passed via the login form
       const verifiedUser = await authenticationService.verifyUser(credentials);
 
-      // Check if there is currently no active session
-      // Authenticate the user with the passed credentials from initialization
-      if (c.get("session") === null) {
-        // Create a session object and store it in the database
-        const sid = await authenticationService.authenticateUser(verifiedUser.id, c.req.raw.headers);
+      try {
+        // Check if the user requires authentication
+        // Authenticate the user with the passed credentials from initialization
+        if (c.get("requireAuth")) {
+          // Create a session object and store it in the database
+          const sid = await authenticationService.authenticateUser(verifiedUser.id, c.req.raw.headers);
 
-        // Set the session cookie in the user agent's browser cookie
-        setCookie(c, sid.name, sid.value, sid.attributes);
+          // Set the session cookie in the user agent's browser cookie
+          setCookie(c, sid.name, sid.value, sid.attributes);
 
-        // Check if prompt parameter is not provided by the client or if prompt is "login"
-        if (!loginRequest.prompt || loginRequest.prompt === "login") {
-          // Initialize session servoce
-          const sessionService = new SessionService();
+          // Check if prompt parameter is not provided by the client or if prompt is "login"
+          if (!loginRequest.prompt || loginRequest.prompt === "login") {
+            // Initialize session servoce
+            const sessionService = new SessionService();
 
-          // Get the currently active session
-          const sessionDetails = await sessionService.getSessionDetails(sid.value);
+            // Get the currently active session
+            const sessionDetails = await sessionService.getSessionDetails(sid.value);
 
-          // Check if consent has not yet been granted
-          if (!sessionDetails.consentGrant) {
-            // If so, generate the /consent url
-            const consentUrl = encodeUrl({
-              base: Environment.getPublicConfig().adminHost,
-              path: "/consent",
-              params: loginRequest,
-            });
+            // Check if consent has not yet been granted
+            if (!sessionDetails.consentGrant) {
+              // If so, generate the /consent url
+              const consentUrl = encodeUrl({
+                base: Environment.getPublicConfig().adminHost,
+                path: "/consent",
+                params: loginRequest,
+              });
 
-            // return the consent url back to the client
-            return c.json({ url: consentUrl });
+              // return the consent url back to the client
+              return c.json({ url: consentUrl });
+            }
           }
         }
-      }
 
-      // If the client specified a prompt parameter, and it happens to contain "consent",
-      // redirect the user agent to the /consent page
-      if (loginRequest.prompt && loginRequest.prompt.includes("consent")) {
-        // Generate the consent url
-        const consentUrl = encodeUrl({
-          base: Environment.getPublicConfig().adminHost,
-          path: "/consent",
-          params: loginRequest,
+        // If the client specified a prompt parameter, and it happens to contain "consent",
+        // redirect the user agent to the /consent page
+        if (loginRequest.prompt && loginRequest.prompt.includes("consent")) {
+          // Generate the consent url
+          const consentUrl = encodeUrl({
+            base: Environment.getPublicConfig().adminHost,
+            path: "/consent",
+            params: loginRequest,
+          });
+
+          // Return the generated consent url back to the client
+          return c.json({ url: consentUrl });
+        }
+
+        // Process the client's redirect_uri and return values requested by the client
+        // according to what was specified in the response_type
+        const callbackUrl = await authenticationService.redirectToCallback(verifiedUser.id);
+
+        // Return the generated url back to the client
+        return c.json({ url: callbackUrl });
+      } catch (error) {
+        throw new OidcError({
+          error: "login_error",
+          message: "Something went wrong!",
+          status: 500,
+
+          // @ts-expect-error error is of type unknown
+          stack: error.stack,
         });
-
-        // Return the generated consent url back to the client
-        return c.json({ url: consentUrl });
       }
-
-      // Process the client's redirect_uri and return values requested by the client
-      // according to what was specified in the response_type
-      const callbackUrl = await authenticationService.redirectToCallback(verifiedUser.id);
-
-      // Return the generated url back to the client
-      return c.json({ url: callbackUrl });
     },
   )
 

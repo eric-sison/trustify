@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { requireAuth } from "../middlewares/require-auth";
 import { zValidator } from "@hono/zod-validator";
 import { UserRegistrationFormSchema } from "../schemas/auth-schema";
+import { OidcError } from "../types/oidc-error";
 
 export const usersHandler = new Hono<HonoAppBindings>()
   .get("/", requireAuth, async (c) => {
@@ -13,12 +14,32 @@ export const usersHandler = new Hono<HonoAppBindings>()
 
     return c.json(users);
   })
-  .post("/register", requireAuth, zValidator("form", UserRegistrationFormSchema), async (c) => {
-    const userInfo = c.req.valid("form");
+  .post("/register", requireAuth, zValidator("json", UserRegistrationFormSchema), async (c) => {
+    const userInfo = c.req.valid("json");
 
     const userService = new UserService();
 
-    const newUser = await userService.register(userInfo);
+    const userWithEmail = await userService.getUserByEmail(userInfo.email);
+
+    if (userWithEmail) {
+      throw new OidcError({
+        error: "email_already_exists",
+        message: "A user with the same email already exists.",
+        status: 400,
+      });
+    }
+
+    const userWithUsername = await userService.getUserByUsername(userInfo.preferredUsername);
+
+    if (userWithUsername) {
+      throw new OidcError({
+        error: "username_already_exists",
+        message: "A user with the same username already exists.",
+        status: 400,
+      });
+    }
+
+    const newUser = await userService.insertUser(userInfo);
 
     return c.json(newUser);
   });

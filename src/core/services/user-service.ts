@@ -7,7 +7,7 @@ import { UserRegistrationFormSchema } from "../schemas/auth-schema";
 export class UserService {
   private readonly userRepository = new UserRepository();
 
-  public async register(userInfo: z.infer<typeof UserRegistrationFormSchema>) {
+  public async insertUser(userInfo: z.infer<typeof UserRegistrationFormSchema>) {
     const hashedPw = await createHash(userInfo.password);
 
     const newUser = await this.userRepository.createUser({ ...userInfo, password: hashedPw });
@@ -19,7 +19,15 @@ export class UserService {
     return await this.userRepository.getAllUsers();
   }
 
-  public async getUserById(userId: string) {
+  public async getUserByEmail(email: string) {
+    return await this.userRepository.getUserByEmail(email);
+  }
+
+  public async getUserByUsername(username: string) {
+    return await this.userRepository.getUserByPreferredUsername(username);
+  }
+
+  public async verifyUserId(userId: string) {
     // Get the user by ID
     const user = await this.userRepository.getUserById(userId);
 

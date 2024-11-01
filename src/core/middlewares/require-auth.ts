@@ -17,6 +17,7 @@ export const requireAuth = createMiddleware(async (c, next) => {
 
     // Bypass OIDC Error if route path is login
     if (c.req.routePath === "/api/v1/oidc/login" && c.req.method === "POST") {
+      c.set("requireAuth", true);
       return await next();
     }
 
@@ -48,18 +49,24 @@ export const requireAuth = createMiddleware(async (c, next) => {
     },
   });
 
+  // console.log({ data });
+
   //const data = await lucia.validateSession(sessionId);
 
   if (data.session && data.session.fresh) {
     c.header("Set-Cookie", lucia.createSessionCookie(data.session.id).serialize(), {
       append: true,
     });
+
+    c.set("requireAuth", false);
   }
 
   if (!data.session) {
     c.header("Set-Cookie", lucia.createBlankSessionCookie().serialize(), {
       append: true,
     });
+
+    c.set("requireAuth", true);
   }
 
   c.set("user", data.user);

@@ -59,7 +59,7 @@ export const tokenHandler = new Hono<HonoAppBindings>().post(
           : await tokenService.handleClientSecretPost(client_id, client_secret);
 
       // Get the user details from database using the stored userId in the payload
-      const user = await userService.getUserById(payload.userId);
+      const user = await userService.verifyUserId(payload.userId);
 
       // Initialize keystore service
       const keyStoreService = new KeyStoreService();
