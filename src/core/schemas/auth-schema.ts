@@ -50,6 +50,7 @@ export const UserRegistrationFormSchema = z.object({
   }),
   emailVerified: z.boolean(),
   suspended: z.boolean().optional(),
+  phoneNumberVerified: z.boolean().optional(),
   // emailVerified: z
   //   .string()
   //   .refine((val) => val === "true" || val === "false", {

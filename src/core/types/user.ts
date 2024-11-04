@@ -17,7 +17,7 @@ export type UserData = {
   emailVerified: boolean;
   suspended: boolean;
   gender: (typeof USER_GENDER)[number] | null;
-  birthdate: string | null;
+  birthdate: Date | null;
   locale: string | null;
   zoneinfo: string | null;
   phoneNumber: string;

@@ -7,6 +7,9 @@ import { Badge } from "@trustify/components/ui/Badge";
 import { DataTableColumnHeader } from "@trustify/components/ui/data-table/DataTableColumnHeader";
 import { DataTableRowActions } from "./UsersDataTableRowActions";
 import { UserData } from "@trustify/core/types/user";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@trustify/components/ui/Tooltip";
+import { Button } from "@trustify/components/ui/Button";
 
 export const columns: ColumnDef<UserData, unknown>[] = [
   {
@@ -64,7 +67,32 @@ export const columns: ColumnDef<UserData, unknown>[] = [
   {
     accessorKey: "phoneNumber",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Contact Number" />,
-    cell: ({ row }) => <p>{row.original.phoneNumber}</p>,
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-3">
+          <p>{row.original.phoneNumber}</p>
+          {!row.original.phoneNumberVerified && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-5 w-5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Phone number is not yet verified!</span>
+                  <Button
+                    variant="link"
+                    onClick={() => console.log(`send verification code to ${row.original.phoneNumber}`)}
+                    className="text-blue-600 dark:text-blue-500"
+                  >
+                    Send code
+                  </Button>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      );
+    },
     enableSorting: false,
   },
 
@@ -73,8 +101,27 @@ export const columns: ColumnDef<UserData, unknown>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
     cell: ({ row }) => {
       return (
-        <div className="flex max-w-56">
-          <h3 className="truncate">{row.original.email}</h3>
+        <div className="flex items-center gap-3">
+          <p>{row.original.email}</p>
+          {!row.original.emailVerified && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-5 w-5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>Email address is not yet verified!</span>
+                  <Button
+                    variant="link"
+                    onClick={() => console.log(`send verification code to ${row.original.email}`)}
+                    className="text-blue-600 dark:text-blue-500"
+                  >
+                    Send code
+                  </Button>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       );
     },
@@ -82,41 +129,15 @@ export const columns: ColumnDef<UserData, unknown>[] = [
 
   {
     accessorKey: "emailVerified",
-    accessorFn: (column) => column.emailVerified.toString(),
     header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
     cell: ({ row }) => {
-      function evaluateStatus(emailVerified: boolean, suspended: boolean) {
-        if (emailVerified && !suspended) {
-          return {
-            email: "Verified",
-            suspended: "Active",
-            status: "bg-green-500",
-          };
-        } else if (!emailVerified && suspended) {
-          return {
-            email: "Not Verified",
-            suspended: "Suspended",
-            status: "bg-rose-500",
-          };
-        } else if (!emailVerified || suspended) {
-          return {
-            email: row.original.emailVerified ? "Verified" : "Not Verified",
-            suspended: row.original.suspended ? "Suspended" : "Active",
-            status: "bg-orange-500",
-          };
-        } else {
-          return null;
-        }
-      }
-
-      const result = evaluateStatus(row.original.emailVerified, row.original.suspended);
-
       return (
         <div className="flex items-center gap-2">
-          <div className={`${result?.status} h-2 w-2 rounded-full`} />
+          <div
+            className={`${!row.original.suspended ? "bg-green-600" : "bg-rose-600"} h-2 w-2 rounded-full`}
+          />
           <section className="space-x-1">
-            <Badge variant="secondary">{result?.email}</Badge>
-            <Badge variant="secondary">{result?.suspended}</Badge>
+            <Badge variant="secondary">{row.original.suspended ? "Suspended" : "Active"}</Badge>
           </section>
         </div>
       );

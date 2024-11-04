@@ -4,10 +4,10 @@ import { type FunctionComponent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { ProfileHeader } from "./ProfileHeader";
-import { ProfileTabs } from "./ProfileTabs";
+import { ProfileContent } from "./ProfileContent";
 import { Button } from "@trustify/components/ui/Button";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export const UserProfile: FunctionComponent<{ userid: string }> = ({ userid }) => {
   const $user = rpcClient.api.v1.users[":userid"].$get;
@@ -23,17 +23,19 @@ export const UserProfile: FunctionComponent<{ userid: string }> = ({ userid }) =
         },
       });
 
-      if (!res.ok) {
-        throw await res.json();
-      }
+      if (!res.ok) throw await res.json();
 
-      return await res.json();
+      const data = await res.json();
+
+      const birthdate = data.birthdate ? new Date(data.birthdate) : new Date();
+
+      return { ...data, birthdate };
     },
   });
 
   if (data) {
     return (
-      <div className="h-full space-y-7 px-20">
+      <div className="h-full space-y-7 sm:px-0 md:px-0 xl:px-20">
         <Button
           variant="link"
           onClick={() => router.back()}
@@ -49,7 +51,8 @@ export const UserProfile: FunctionComponent<{ userid: string }> = ({ userid }) =
           email={data?.email}
           username={data?.preferredUsername}
         />
-        <ProfileTabs {...data} />
+
+        <ProfileContent {...data} />
       </div>
     );
   }
