@@ -33,7 +33,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps<UserColumn
           </>
         )}
 
-        <DropdownMenuItem onClick={() => console.log(row.original)}>View More</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => console.log(row.original)}>View Profile</DropdownMenuItem>
         <DropdownMenuItem onClick={() => console.log(row.original)}>Update</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => console.log(row.original)}>Delete</DropdownMenuItem>
