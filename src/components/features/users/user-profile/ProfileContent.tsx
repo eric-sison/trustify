@@ -10,10 +10,10 @@ export const ProfileContent: FunctionComponent<UserData> = (user) => {
   return (
     <Tabs defaultValue="details" className="space-y-4">
       <TabsList className="full">
-        <TabsTrigger value="details">Details</TabsTrigger>
-        <TabsTrigger value="roles">Roles</TabsTrigger>
+        <TabsTrigger value="details">User Details</TabsTrigger>
+        <TabsTrigger value="roles">Roles & Permission</TabsTrigger>
         <TabsTrigger value="organization">Organization</TabsTrigger>
-        <TabsTrigger value="logs">User Logs</TabsTrigger>
+        <TabsTrigger value="logs">Audit Logs</TabsTrigger>
       </TabsList>
 
       <TabsContent value="details" className="space-y-7 pb-10">
