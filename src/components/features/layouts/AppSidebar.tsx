@@ -153,6 +153,8 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
 
   const pathName = usePathname();
 
+  console.log(pathName);
+
   const router = useRouter();
 
   const { state } = useSidebar();
@@ -217,34 +219,36 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
             <SidebarGroupLabel className="uppercase tracking-widest">General</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {data.main.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    {state === "collapsed" ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <SidebarMenuButton
-                              isActive={pathName === item.url}
-                              onClick={() => router.push(item.url)}
-                            >
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </SidebarMenuButton>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">{item.title}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <SidebarMenuButton
-                        isActive={pathName === item.url}
-                        onClick={() => router.push(item.url)}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </SidebarMenuItem>
-                ))}
+                {data.main.map((item) => {
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      {state === "collapsed" ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SidebarMenuButton
+                                isActive={pathName.startsWith(item.url)}
+                                onClick={() => router.push(item.url)}
+                              >
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </SidebarMenuButton>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{item.title}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <SidebarMenuButton
+                          isActive={pathName.startsWith(item.url)}
+                          onClick={() => router.push(item.url)}
+                        >
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -253,34 +257,36 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
             <SidebarGroupLabel className="uppercase tracking-widest">Configuration</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {data.config.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    {state === "collapsed" ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <SidebarMenuButton
-                              isActive={pathName === item.url}
-                              onClick={() => router.push(item.url)}
-                            >
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </SidebarMenuButton>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">{item.title}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <SidebarMenuButton
-                        isActive={pathName === item.url}
-                        onClick={() => router.push(item.url)}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </SidebarMenuItem>
-                ))}
+                {data.config.map((item) => {
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      {state === "collapsed" ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SidebarMenuButton
+                                isActive={pathName.startsWith(item.url)}
+                                onClick={() => router.push(item.url)}
+                              >
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </SidebarMenuButton>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{item.title}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <SidebarMenuButton
+                          isActive={pathName.startsWith(item.url)}
+                          onClick={() => router.push(item.url)}
+                        >
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -357,7 +363,7 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
       <SidebarInset className="overflow-y-auto">
         <AppTopbar />
         <Separator />
-        <div className="px-20 py-10">{children}</div>
+        <div className="h-full px-20 py-10">{children}</div>
       </SidebarInset>
     </>
   );

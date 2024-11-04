@@ -1,6 +1,6 @@
-export type PageProps<T, K> = {
-  params: Promise<T>;
-  searchParams: Promise<K>;
+export type PageProps<T = void, K = void> = {
+  params?: Promise<T>;
+  searchParams?: Promise<K>;
 };
 
 export type ErrorPageProps = {

@@ -5,37 +5,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback } from "@trustify/components/ui/Avatar";
 import { Badge } from "@trustify/components/ui/Badge";
 import { DataTableColumnHeader } from "@trustify/components/ui/data-table/DataTableColumnHeader";
-import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
-import { USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
 import { DataTableRowActions } from "./UsersDataTableRowActions";
-import { z } from "zod";
+import { UserData } from "@trustify/core/types/user";
 
-export type UserColumn = {
-  id: string;
-  role: (typeof USER_ROLES)[number];
-  email: string;
-  givenName: string | null;
-  middleName: string | null;
-  familyName: string | null;
-  nickname: string | null;
-  preferredUsername: string;
-  profile: string | null;
-  picture: string | null;
-  website: string | null;
-  emailVerified: boolean;
-  suspended: boolean;
-  gender: (typeof USER_GENDER)[number] | null;
-  birthdate: string | null;
-  locale: string | null;
-  zoneinfo: string | null;
-  phoneNumber: string;
-  phoneNumberVerified: boolean;
-  address: z.infer<typeof UserAddressSchema> | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export const columns: ColumnDef<UserColumn, unknown>[] = [
+export const columns: ColumnDef<UserData, unknown>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="User ID" />,
@@ -58,7 +31,10 @@ export const columns: ColumnDef<UserColumn, unknown>[] = [
       return (
         <Avatar>
           <AvatarImage src={row.getValue("picture")} alt={row.getValue("preferredUsername")} />
-          <AvatarFallback className="font-semibold uppercase">
+          <AvatarFallback
+            className="font-semibold uppercase"
+            defaultColor={row.original.metadata?.defaultColor}
+          >
             {row.original.email.charAt(0)}
             {row.original.email.charAt(1)}
           </AvatarFallback>

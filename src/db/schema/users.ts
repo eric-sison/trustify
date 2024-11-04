@@ -1,4 +1,6 @@
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
+import { UserMetaData } from "@trustify/types/user-metadata";
+import { getRandomColor } from "@trustify/utils/get-random-color";
 import { ID_LENGTH, USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
 import { char, pgTable, varchar, boolean, pgEnum, timestamp, jsonb, date } from "drizzle-orm/pg-core";
 import { generateId } from "lucia";
@@ -33,6 +35,13 @@ export const users = pgTable("users", {
   phoneNumber: varchar("phone_number").notNull(),
   phoneNumberVerified: boolean("phone_number_verified").default(false).notNull(),
   address: jsonb("address").$type<z.infer<typeof UserAddressSchema>>(),
+  metaData: jsonb("metadata")
+    .$type<UserMetaData>()
+    .$defaultFn(() => {
+      return { defaultColor: getRandomColor() };
+    })
+    .notNull(),
+  customData: jsonb("custom_data"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
     mode: "date",

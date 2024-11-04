@@ -5,6 +5,7 @@ import { requireAuth } from "../middlewares/require-auth";
 import { zValidator } from "@hono/zod-validator";
 import { UserRegistrationFormSchema } from "../schemas/auth-schema";
 import { OidcError } from "../types/oidc-error";
+import { z } from "zod";
 
 export const usersHandler = new Hono<HonoAppBindings>()
   .get("/", requireAuth, async (c) => {
@@ -14,6 +15,17 @@ export const usersHandler = new Hono<HonoAppBindings>()
 
     return c.json(users);
   })
+
+  .get("/:userid", zValidator("param", z.object({ userid: z.string() })), requireAuth, async (c) => {
+    const { userid } = c.req.valid("param");
+
+    const userService = new UserService();
+
+    const user = await userService.verifyUserId(userid);
+
+    return c.json(user);
+  })
+
   .post("/register", requireAuth, zValidator("json", UserRegistrationFormSchema), async (c) => {
     const userInfo = c.req.valid("json");
 

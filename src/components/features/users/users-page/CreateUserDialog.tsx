@@ -77,7 +77,7 @@ export const CreateUserDialog: FunctionComponent = () => {
                 name="emailVerified"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       <FormLabel>Verify Email</FormLabel>
                       <FormDescription className="text-orange-600 dark:text-orange-400">
                         This will bypass email verification process.

@@ -1,6 +1,6 @@
-import { QueryClientProvider } from "@trustify/components/providers/QueryClientProvider";
-import { ThemeProvider } from "@trustify/components/providers/ThemeProvider";
 import type { PropsWithChildren } from "react";
+import { QueryClientProvider } from "@trustify/components/providers/QueryClientProvider";
+import { ThemeProvider } from "next-themes";
 import localFont from "next/font/local";
 import { Toaster } from "@trustify/components/ui/Toaster";
 import { Toaster as SonnerToaster } from "@trustify/components/ui/Sonner";

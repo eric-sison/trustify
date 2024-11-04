@@ -24,4 +24,7 @@ export type GenerateTokenOptions = {
   expiration: number | undefined;
 };
 
-export type UserClaims = Omit<typeof users.$inferSelect, "createdAt" | "role" | "password" | "suspended">;
+export type UserClaims = Omit<
+  typeof users.$inferSelect,
+  "createdAt" | "role" | "password" | "suspended" | "metaData" | "customData"
+>;

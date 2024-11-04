@@ -10,13 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@trustify/components/ui/DropdownMenu";
-import { UserColumn } from "./UsersDataTableColumns";
+import { UserData } from "@trustify/core/types/user";
+import { useRouter } from "next/navigation";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
 
-export function DataTableRowActions({ row }: DataTableRowActionsProps<UserColumn>) {
+export function DataTableRowActions({ row }: DataTableRowActionsProps<UserData>) {
+  const router = useRouter();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,7 +36,9 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps<UserColumn
           </>
         )}
 
-        <DropdownMenuItem onClick={() => console.log(row.original)}>View Profile</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(`/users/${row.original.id}`)}>
+          View Profile
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => console.log(row.original)}>Update</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => console.log(row.original)}>Delete</DropdownMenuItem>

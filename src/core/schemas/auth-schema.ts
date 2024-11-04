@@ -49,6 +49,7 @@ export const UserRegistrationFormSchema = z.object({
     message: "Please provide a mobile number.",
   }),
   emailVerified: z.boolean(),
+  suspended: z.boolean().optional(),
   // emailVerified: z
   //   .string()
   //   .refine((val) => val === "true" || val === "false", {

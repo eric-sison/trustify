@@ -82,6 +82,7 @@ export class UserRepository {
           phoneNumber: users.phoneNumber,
           phoneNumberVerified: users.phoneNumberVerified,
           address: users.address,
+          metadata: users.metaData,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
         })
@@ -108,6 +109,8 @@ export class UserRepository {
       const ps = db
         .select({
           id: users.id,
+          role: users.role,
+          suspended: users.suspended,
           gender: users.gender,
           email: users.email,
           givenName: users.givenName,
@@ -125,7 +128,9 @@ export class UserRepository {
           phoneNumber: users.phoneNumber,
           phoneNumberVerified: users.phoneNumberVerified,
           address: users.address,
+          metadata: users.metaData,
           updatedAt: users.updatedAt,
+          createdAt: users.createdAt,
         })
         .from(users)
         .where(eq(users.id, sql.placeholder("userId")))
