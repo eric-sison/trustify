@@ -68,13 +68,13 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Contact Number" />,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           <p>{row.original.phoneNumber}</p>
           {!row.original.phoneNumberVerified && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger>
-                  <Info className="h-5 w-5 text-muted-foreground" />
+                  <Info className="h-4 w-4 text-amber-500 dark:text-amber-600" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <span>Phone number is not yet verified!</span>
@@ -100,13 +100,13 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           <p>{row.original.email}</p>
           {!row.original.emailVerified && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger>
-                  <Info className="h-5 w-5 text-muted-foreground" />
+                  <Info className="h-4 w-4 text-amber-500 dark:text-amber-600" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <span>Email address is not yet verified!</span>

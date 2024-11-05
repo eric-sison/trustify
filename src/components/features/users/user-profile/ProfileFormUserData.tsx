@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type FunctionComponent } from "react";
+import { type FunctionComponent } from "react";
 import {
   Form,
   FormControl,
@@ -17,11 +17,7 @@ import { useProfileUserdataForm } from "@trustify/core/hooks/use-profile-userdat
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
-  const { form, isPending, refresh, submit } = useProfileUserdataForm(user);
-
-  useEffect(() => {
-    refresh();
-  }, [user.id, refresh]);
+  const { form, isPending, submit } = useProfileUserdataForm(user);
 
   return (
     <Form {...form}>

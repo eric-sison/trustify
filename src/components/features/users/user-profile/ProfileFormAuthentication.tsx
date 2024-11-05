@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type FunctionComponent } from "react";
+import { type FunctionComponent } from "react";
 import {
   Form,
   FormControl,
@@ -18,11 +18,7 @@ import { useProfileAuthenticationForm } from "@trustify/core/hooks/use-profile-a
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => {
-  const { form, isPending, submit, refresh } = useProfileAuthenticationForm(user);
-
-  useEffect(() => {
-    refresh();
-  }, [user.id, refresh]);
+  const { form, isPending, submit } = useProfileAuthenticationForm(user);
 
   return (
     <Form {...form}>
@@ -62,7 +58,7 @@ export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => 
                 <FormControl>
                   <Input
                     id="phoneNumber"
-                    placeholder="@username"
+                    placeholder="+639-32-234-5678"
                     className="placeholder:select-none"
                     {...field}
                   />

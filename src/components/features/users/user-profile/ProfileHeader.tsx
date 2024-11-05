@@ -2,7 +2,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@trustify/components/ui/Ava
 import { DEFAULT_COLORS } from "@trustify/utils/constants";
 import { type FunctionComponent } from "react";
 import { ProfileHeaderDropdown } from "./ProfileHeaderDropdown";
-// import { Button } from "@trustify/components/ui/Button";
 
 type ProfileHeaderProps = {
   avatarUrl: string | null;

@@ -7,9 +7,24 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { InferRequestType, InferResponseType } from "hono/client";
 import { useParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+
+const resetToDefault = (
+  form: UseFormReturn<z.infer<typeof UserAddressSchema>>,
+  address: Partial<z.infer<typeof UserAddressSchema>>,
+) => {
+  form.reset({
+    country: address.country ?? "",
+    formatted: address.formatted ?? "",
+    locality: address.locality ?? "",
+    postal_code: address.postal_code ?? "",
+    region: address.region ?? "",
+    street_address: address.street_address ?? "",
+  });
+};
 
 export const useProfileAddressForm = (address: Partial<z.infer<typeof UserAddressSchema>>) => {
   const $userAddressUpdate = rpcClient.api.v1.users["user-address"][":userid"].$patch;
@@ -29,6 +44,10 @@ export const useProfileAddressForm = (address: Partial<z.infer<typeof UserAddres
       street_address: address.street_address ?? "",
     },
   });
+
+  useEffect(() => {
+    resetToDefault(form, address);
+  }, [form, address]);
 
   const { data, isPending, mutate } = useMutation<
     InferResponseType<typeof $userAddressUpdate>,
@@ -56,6 +75,8 @@ export const useProfileAddressForm = (address: Partial<z.infer<typeof UserAddres
 
       toast.success(`User address successfully updated!`);
 
+      document.querySelector("body")?.scrollTo(0, 0);
+
       return data;
     },
     onError: (error) => {
@@ -68,14 +89,5 @@ export const useProfileAddressForm = (address: Partial<z.infer<typeof UserAddres
     mutate(values);
   };
 
-  const refresh = () => {
-    form.setValue("country", address.country ?? "");
-    form.setValue("formatted", address.formatted ?? "");
-    form.setValue("locality", address.locality ?? "");
-    form.setValue("postal_code", address.postal_code ?? "");
-    form.setValue("region", address.region ?? "");
-    form.setValue("street_address", address.street_address ?? "");
-  };
-
-  return { form, refresh, submit, data, isPending };
+  return { form, submit, data, isPending };
 };

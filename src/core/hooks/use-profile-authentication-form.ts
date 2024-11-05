@@ -8,8 +8,23 @@ import { UserData } from "@trustify/core/types/user";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { InferRequestType, InferResponseType } from "hono";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
+import { useEffect } from "react";
+
+const resetToDefault = (
+  form: UseFormReturn<z.infer<typeof UpdateAuthenticationFormSchema>>,
+  user: UserData,
+) => {
+  form.reset({
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    emailVerified: user.emailVerified,
+    preferredUsername: user.preferredUsername,
+    suspended: user.suspended,
+    phoneNumberVerified: user.phoneNumberVerified,
+  });
+};
 
 export const useProfileAuthenticationForm = (user: UserData) => {
   const $userAuthUpdate = rpcClient.api.v1.users["authentication-details"][":userid"].$patch;
@@ -27,6 +42,10 @@ export const useProfileAuthenticationForm = (user: UserData) => {
       phoneNumberVerified: user.phoneNumberVerified,
     },
   });
+
+  useEffect(() => {
+    resetToDefault(form, user);
+  }, [form, user]);
 
   const { data, isPending, mutate } = useMutation<
     InferResponseType<typeof $userAuthUpdate>,
@@ -54,6 +73,8 @@ export const useProfileAuthenticationForm = (user: UserData) => {
 
       toast.success(`Authentication details successfully updated!`);
 
+      document.querySelector("body")?.scrollTo(0, 0);
+
       return data;
     },
     onError: (error) => {
@@ -66,14 +87,5 @@ export const useProfileAuthenticationForm = (user: UserData) => {
     mutate(values);
   };
 
-  const refresh = () => {
-    form.setValue("email", user.email);
-    form.setValue("phoneNumber", user.phoneNumber);
-    form.setValue("emailVerified", user.emailVerified);
-    form.setValue("preferredUsername", user.preferredUsername);
-    form.setValue("suspended", user.suspended);
-    form.setValue("phoneNumberVerified", user.phoneNumberVerified);
-  };
-
-  return { form, refresh, submit, data, isPending };
+  return { form, submit, data, isPending };
 };

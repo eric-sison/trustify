@@ -12,7 +12,7 @@ import {
 import { Input } from "@trustify/components/ui/Input";
 import { Label } from "@trustify/components/ui/Label";
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
-import { useEffect, type FunctionComponent } from "react";
+import { type FunctionComponent } from "react";
 import { z } from "zod";
 import { useProfileAddressForm } from "@trustify/core/hooks/use-profile-address-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
@@ -20,11 +20,7 @@ import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAddressSchema>>> = (
   address,
 ) => {
-  const { form, isPending, submit, refresh } = useProfileAddressForm(address);
-
-  useEffect(() => {
-    refresh();
-  }, [address, refresh]);
+  const { form, isPending, submit } = useProfileAddressForm(address);
 
   return (
     <Form {...form}>

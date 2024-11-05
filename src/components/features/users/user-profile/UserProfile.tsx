@@ -38,11 +38,11 @@ export const UserProfile: FunctionComponent<{ userid: string }> = ({ userid }) =
       <div className="h-full space-y-7 sm:px-0 md:px-0 xl:px-20">
         <Button
           variant="link"
-          onClick={() => router.back()}
+          onClick={() => router.push("/users")}
           className="space-x-2 p-0 text-base text-muted-foreground"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span>Go Back</span>
+          <span>Go back to users</span>
         </Button>
 
         <ProfileHeader
