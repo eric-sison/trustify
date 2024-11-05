@@ -1,6 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@trustify/components/ui/Button";
 import {
   Form,
@@ -25,7 +24,7 @@ export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAd
 
   useEffect(() => {
     refresh();
-  }, [address]);
+  }, [address, refresh]);
 
   return (
     <Form {...form}>
@@ -47,7 +46,7 @@ export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAd
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>End-User's country of origin.</FormDescription>
+                <FormDescription>End-User&apos;s country of origin.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -93,7 +92,7 @@ export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAd
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>End-User's city name.</FormDescription>
+                <FormDescription>End-User&apos;s city name.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -115,7 +114,7 @@ export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAd
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>End-User's region name.</FormDescription>
+                <FormDescription>End-User&apos;s region name.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -137,7 +136,7 @@ export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAd
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>End-User's postal code.</FormDescription>
+                <FormDescription>End-User&apos;s postal code.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

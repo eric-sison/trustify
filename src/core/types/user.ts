@@ -1,4 +1,4 @@
-import { DEFAULT_COLORS, USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
+import { DEFAULT_COLORS, USER_GENDER } from "@trustify/utils/constants";
 import { UserAddressSchema } from "../schemas/user-schema";
 import { z } from "zod";
 

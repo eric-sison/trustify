@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@trustify/components/ui/DropdownMenu";
-import { UserData, UserSummary } from "@trustify/core/types/user";
+import { UserSummary } from "@trustify/core/types/user";
 import { useRouter } from "next/navigation";
 
 interface DataTableRowActionsProps<TData> {

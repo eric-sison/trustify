@@ -21,7 +21,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
 
   useEffect(() => {
     refresh();
-  }, [user.id]);
+  }, [user.id, refresh]);
 
   return (
     <Form {...form}>
@@ -136,7 +136,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                   />
                 </FormControl>
                 <FormDescription>
-                  URL of the End-User's profile picture. This URL MUST refer to an image file.
+                  URL of the End-User&apos;s profile picture. This URL MUST refer to an image file.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -160,7 +160,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                   />
                 </FormControl>
                 <FormDescription>
-                  URL of the End-User's profile page. The contents of this Web page should be about the
+                  URL of the End-User&apos;s profile page. The contents of this Web page should be about the
                   End-User.
                 </FormDescription>
                 <FormMessage />
@@ -184,7 +184,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>URL of the End-User's Web page or blog.</FormDescription>
+                <FormDescription>URL of the End-User&apos;s Web page or blog.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

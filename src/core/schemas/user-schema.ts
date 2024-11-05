@@ -1,4 +1,4 @@
-import { ID_LENGTH, USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
+import { ID_LENGTH, USER_GENDER } from "@trustify/utils/constants";
 import { z, ZodLiteral } from "zod";
 
 export const UserAddressSchema = z.object({

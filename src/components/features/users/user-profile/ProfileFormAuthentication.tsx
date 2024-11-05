@@ -22,7 +22,7 @@ export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => 
 
   useEffect(() => {
     refresh();
-  }, [user.id]);
+  }, [user.id, refresh]);
 
   return (
     <Form {...form}>
@@ -45,7 +45,7 @@ export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => 
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>End-User's preferred e-mail address.</FormDescription>
+                <FormDescription>End-User&apos;s preferred e-mail address.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -67,7 +67,7 @@ export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => 
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>End-User's preferred contact number.</FormDescription>
+                <FormDescription>End-User&apos;s preferred contact number.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
