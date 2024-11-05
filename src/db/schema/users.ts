@@ -5,6 +5,7 @@ import { ID_LENGTH, USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
 import { char, pgTable, varchar, boolean, pgEnum, timestamp, jsonb, date } from "drizzle-orm/pg-core";
 import { generateId } from "lucia";
 import { z } from "zod";
+import { roles } from "./roles";
 
 export const userGenderEnum = pgEnum("user_gender_enum", USER_GENDER);
 export const userRolesEnum = pgEnum("user_roles_enum", USER_ROLES);
@@ -13,7 +14,7 @@ export const users = pgTable("users", {
   id: char("user_id", { length: ID_LENGTH })
     .primaryKey()
     .$defaultFn(() => generateId(ID_LENGTH)),
-  role: userRolesEnum("role").default("client").notNull(),
+  role: char("role_id_fk", { length: ID_LENGTH }).references(() => roles.id),
   email: varchar("email").unique().notNull(),
   password: varchar("password").notNull(),
   givenName: varchar("given_name"),
