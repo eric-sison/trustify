@@ -15,7 +15,7 @@ import { Label } from "@trustify/components/ui/Label";
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { useEffect, type FunctionComponent } from "react";
 import { z } from "zod";
-import { useProfileAddressForm } from "./use-profile-address-form";
+import { useProfileAddressForm } from "@trustify/core/hooks/use-profile-address-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAddressSchema>>> = (

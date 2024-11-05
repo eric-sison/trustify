@@ -14,7 +14,7 @@ import { Input } from "@trustify/components/ui/Input";
 import { UserData } from "@trustify/core/types/user";
 import { Switch } from "@trustify/components/ui/Switch";
 import { Button } from "@trustify/components/ui/Button";
-import { useProfileAuthenticationForm } from "./use-profile-authentication-form";
+import { useProfileAuthenticationForm } from "@trustify/core/hooks/use-profile-authentication-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => {
