@@ -3,6 +3,7 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { createHash, verifyHash } from "@trustify/utils/hash-fns";
 import { z } from "zod";
 import { UserRegistrationFormSchema } from "../schemas/auth-schema";
+import { users } from "@trustify/db/schema/users";
 
 export class UserService {
   private readonly userRepository = new UserRepository();
@@ -13,6 +14,28 @@ export class UserService {
     const newUser = await this.userRepository.createUser({ ...userInfo, password: hashedPw });
 
     return newUser;
+  }
+
+  public async verifyIfEmailOrUsernameExists(email: string, username: string) {
+    const userWithEmail = await this.getUserByEmail(email);
+
+    if (userWithEmail) {
+      throw new OidcError({
+        error: "email_already_exists",
+        message: "A user with the same email already exists.",
+        status: 400,
+      });
+    }
+
+    const userWithUsername = await this.getUserByUsername(username);
+
+    if (userWithUsername) {
+      throw new OidcError({
+        error: "username_already_exists",
+        message: "A user with the same username already exists.",
+        status: 400,
+      });
+    }
   }
 
   public async getAllUsers() {
@@ -75,5 +98,9 @@ export class UserService {
         status: 401,
       });
     }
+  }
+
+  public async updateUser(userId: string, data: Partial<typeof users.$inferInsert>) {
+    return await this.userRepository.updateUser(userId, data);
   }
 }

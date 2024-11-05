@@ -4,6 +4,7 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { sql, eq } from "drizzle-orm";
 import { z } from "zod";
 import { UserRegistrationFormSchema } from "../schemas/auth-schema";
+import { PostgresError } from "postgres";
 
 export class UserRepository {
   public async createUser(userInfo: z.infer<typeof UserRegistrationFormSchema>) {
@@ -63,28 +64,17 @@ export class UserRepository {
       const ps = db
         .select({
           id: users.id,
-          role: users.role,
+          picture: users.picture,
           email: users.email,
           givenName: users.givenName,
           middleName: users.middleName,
           familyName: users.familyName,
-          nickname: users.nickname,
           preferredUsername: users.preferredUsername,
-          profile: users.profile,
-          picture: users.picture,
-          website: users.website,
           emailVerified: users.emailVerified,
           suspended: users.suspended,
-          gender: users.gender,
-          birthdate: users.birthdate,
-          locale: users.locale,
-          zoneinfo: users.zoneinfo,
           phoneNumber: users.phoneNumber,
           phoneNumberVerified: users.phoneNumberVerified,
-          address: users.address,
           metadata: users.metaData,
-          createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
         })
         .from(users)
         .prepare("get_all_users");
@@ -194,6 +184,72 @@ export class UserRepository {
         // @ts-expect-error error is of type unknown
         stack: error.stack,
       });
+    }
+  }
+
+  async updateUser(userId: string, data: Partial<typeof users.$inferInsert>) {
+    try {
+      const ps = db
+        .update(users)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(users.id, userId))
+        .returning({
+          id: users.id,
+          role: users.role,
+          email: users.email,
+          givenName: users.givenName,
+          middleName: users.middleName,
+          familyName: users.familyName,
+          nickname: users.nickname,
+          preferredUsername: users.preferredUsername,
+          profile: users.profile,
+          picture: users.picture,
+          website: users.website,
+          emailVerified: users.emailVerified,
+          suspended: users.suspended,
+          gender: users.gender,
+          birthdate: users.birthdate,
+          locale: users.locale,
+          zoneinfo: users.zoneinfo,
+          phoneNumber: users.phoneNumber,
+          phoneNumberVerified: users.phoneNumberVerified,
+          address: users.address,
+          metaData: users.metaData,
+          customData: users.customData,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .prepare("update_user");
+
+      const result = await ps.execute();
+
+      return result[0];
+    } catch (error) {
+      if (error instanceof Object && "name" in error) {
+        if (error.name === "PostgresError") {
+          const pgError = error as PostgresError;
+
+          if (pgError.code === "23505") {
+            throw new OidcError({
+              error: "duplicate_keys",
+              message: "Either email or username already exists.",
+              status: 400,
+
+              // @ts-expect-error error is of type unknown
+              stack: error.stack,
+            });
+          }
+        } else {
+          throw new OidcError({
+            error: "failed_query",
+            message: "Failed to execute query.",
+            status: 500,
+
+            // @ts-expect-error error is of type unknown
+            stack: error.stack,
+          });
+        }
+      }
     }
   }
 }

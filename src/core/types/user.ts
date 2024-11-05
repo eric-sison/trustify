@@ -4,7 +4,6 @@ import { z } from "zod";
 
 export type UserData = {
   id: string;
-  role: (typeof USER_ROLES)[number];
   email: string;
   givenName: string | null;
   middleName: string | null;
@@ -26,4 +25,19 @@ export type UserData = {
   metadata: { defaultColor: (typeof DEFAULT_COLORS)[number] } | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type UserSummary = {
+  id: string;
+  picture: string | null;
+  givenName: string | null;
+  middleName: string | null;
+  familyName: string | null;
+  preferredUsername: string;
+  phoneNumber: string;
+  phoneNumberVerified: boolean;
+  email: string;
+  emailVerified: boolean;
+  suspended: boolean;
+  metadata: { defaultColor: (typeof DEFAULT_COLORS)[number] };
 };

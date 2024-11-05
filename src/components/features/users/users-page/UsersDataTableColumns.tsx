@@ -1,17 +1,16 @@
 "use client";
 
-import { AvatarImage } from "@radix-ui/react-avatar";
 import { ColumnDef } from "@tanstack/react-table";
-import { Avatar, AvatarFallback } from "@trustify/components/ui/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@trustify/components/ui/Avatar";
 import { Badge } from "@trustify/components/ui/Badge";
 import { DataTableColumnHeader } from "@trustify/components/ui/data-table/DataTableColumnHeader";
 import { DataTableRowActions } from "./UsersDataTableRowActions";
-import { UserData } from "@trustify/core/types/user";
+import { UserSummary } from "@trustify/core/types/user";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@trustify/components/ui/Tooltip";
 import { Button } from "@trustify/components/ui/Button";
 
-export const columns: ColumnDef<UserData, unknown>[] = [
+export const columns: ColumnDef<UserSummary, unknown>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="User ID" />,

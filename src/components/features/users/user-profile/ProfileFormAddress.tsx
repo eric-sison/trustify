@@ -13,23 +13,23 @@ import {
 import { Input } from "@trustify/components/ui/Input";
 import { Label } from "@trustify/components/ui/Label";
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
-import { type FunctionComponent } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, type FunctionComponent } from "react";
 import { z } from "zod";
+import { useProfileAddressForm } from "./use-profile-address-form";
+import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAddressSchema>>> = (
   address,
 ) => {
-  const form = useForm<z.infer<typeof UserAddressSchema>>({
-    resolver: zodResolver(UserAddressSchema),
-    defaultValues: {
-      ...address,
-    },
-  });
+  const { form, isPending, submit, refresh } = useProfileAddressForm(address);
+
+  useEffect(() => {
+    refresh();
+  }, [address]);
 
   return (
     <Form {...form}>
-      <form className="space-y-10">
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-10">
         <section className="space-y-10">
           <FormField
             control={form.control}
@@ -145,8 +145,16 @@ export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAd
         </section>
 
         <section className="flex items-center justify-end gap-2">
-          <Button variant="ghost">Discard</Button>
-          <Button variant="secondary">Save Changes</Button>
+          <Button variant="secondary" type="submit" disabled={isPending}>
+            {isPending ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size={18} />
+                <span>Please Wait</span>
+              </div>
+            ) : (
+              <span>Save Changes</span>
+            )}
+          </Button>
         </section>
       </form>
     </Form>

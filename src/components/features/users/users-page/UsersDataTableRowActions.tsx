@@ -10,14 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@trustify/components/ui/DropdownMenu";
-import { UserData } from "@trustify/core/types/user";
+import { UserData, UserSummary } from "@trustify/core/types/user";
 import { useRouter } from "next/navigation";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
 
-export function DataTableRowActions({ row }: DataTableRowActionsProps<UserData>) {
+export function DataTableRowActions({ row }: DataTableRowActionsProps<UserSummary>) {
   const router = useRouter();
 
   return (

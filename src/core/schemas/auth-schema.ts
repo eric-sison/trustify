@@ -49,13 +49,4 @@ export const UserRegistrationFormSchema = z.object({
     message: "Please provide a mobile number.",
   }),
   emailVerified: z.boolean(),
-  suspended: z.boolean().optional(),
-  phoneNumberVerified: z.boolean().optional(),
-  // emailVerified: z
-  //   .string()
-  //   .refine((val) => val === "true" || val === "false", {
-  //     message: "emailVerified must be a boolean-like string",
-  //   })
-  //   .transform((val) => val === "true"),
-  // emailVerified: z.union([z.literal("true"), z.literal("false")]),
 });

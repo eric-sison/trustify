@@ -7,25 +7,54 @@ export const UserAddressSchema = z.object({
   locality: z.string().optional(),
   region: z.string().optional(),
   postal_code: z.string().optional(),
-  country: z.string(),
+  country: z.string().optional(),
 });
 
-export const UserUpdateDataSchema = z.object({
-  role: z
-    .union(
-      USER_ROLES.map((type) => z.literal(type)) as [
-        ZodLiteral<(typeof USER_ROLES)[number]>,
-        ZodLiteral<(typeof USER_ROLES)[number]>,
-      ],
-    )
-    .optional(),
-  givenName: z.string(),
-  middleName: z.string(),
-  familyName: z.string(),
-  nickname: z.string().optional(),
-  profile: z.string().url().optional(),
-  picture: z.string().url().optional(),
-  website: z.string().url().optional(),
+export const UserIdParamSchema = z.object({
+  userid: z.string().length(ID_LENGTH),
+});
+
+export const UpdateAuthenticationFormSchema = z.object({
+  email: z.string().email({
+    message: "Must be a valid email.",
+  }),
+  preferredUsername: z.string().min(5, {
+    message: "Username must be at least 5 characters long.",
+  }),
+  phoneNumber: z.string().min(1, {
+    message: "Please provide a mobile number.",
+  }),
+  emailVerified: z.boolean(),
+  suspended: z.boolean(),
+  phoneNumberVerified: z.boolean(),
+});
+
+export const UpdateUserDataFormSchema = z.object({
+  givenName: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  middleName: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  familyName: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  nickname: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  profile: z
+    .union([z.string().url({ message: "Profile page must be a valid URL." }), z.literal(""), z.undefined()])
+    .transform((val) => (val === "" ? undefined : val)),
+  picture: z
+    .union([z.string().url({ message: "Avatar must be a valid URL." }), z.literal(""), z.undefined()])
+    .transform((val) => (val === "" ? undefined : val)),
+  website: z
+    .union([z.string().url({ message: "Website must be a valid URL." }), z.literal(""), z.undefined()])
+    .transform((val) => (val === "" ? undefined : val)),
   gender: z
     .union(
       USER_GENDER.map((type) => z.literal(type)) as [
@@ -35,6 +64,12 @@ export const UserUpdateDataSchema = z.object({
     )
     .optional(),
   birthdate: z.date().optional(),
-  locale: z.string().optional(),
-  zoneinfo: z.string().optional(),
+  locale: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  zoneinfo: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
 });

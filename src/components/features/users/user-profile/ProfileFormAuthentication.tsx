@@ -1,6 +1,6 @@
 "use client";
 
-import { type FunctionComponent } from "react";
+import { useEffect, type FunctionComponent } from "react";
 import {
   Form,
   FormControl,
@@ -9,32 +9,24 @@ import {
   FormItem,
   FormMessage,
 } from "@trustify/components/ui/Form";
-import { useForm } from "react-hook-form";
 import { Label } from "@trustify/components/ui/Label";
 import { Input } from "@trustify/components/ui/Input";
-import { z } from "zod";
-import { UserRegistrationFormSchema } from "@trustify/core/schemas/auth-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { UserData } from "@trustify/core/types/user";
 import { Switch } from "@trustify/components/ui/Switch";
 import { Button } from "@trustify/components/ui/Button";
+import { useProfileAuthenticationForm } from "./use-profile-authentication-form";
+import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => {
-  const form = useForm<z.infer<typeof UserRegistrationFormSchema>>({
-    resolver: zodResolver(UserRegistrationFormSchema),
-    defaultValues: {
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      emailVerified: user.emailVerified,
-      preferredUsername: user.preferredUsername,
-      suspended: user.suspended,
-      phoneNumberVerified: user.phoneNumberVerified,
-    },
-  });
+  const { form, isPending, submit, refresh } = useProfileAuthenticationForm(user);
+
+  useEffect(() => {
+    refresh();
+  }, [user.id]);
 
   return (
     <Form {...form}>
-      <form onSubmit={() => console.log("ok")} className="space-y-10">
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-10">
         <section className="space-y-10">
           <FormField
             control={form.control}
@@ -49,6 +41,7 @@ export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => 
                     id="email"
                     placeholder="johndoe@example.com"
                     className="placeholder:select-none"
+                    disabled={user.emailVerified}
                     {...field}
                   />
                 </FormControl>
@@ -178,8 +171,16 @@ export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => 
         </section>
 
         <section className="flex items-center justify-end gap-2">
-          <Button variant="ghost">Discard</Button>
-          <Button variant="secondary">Save Changes</Button>
+          <Button variant="secondary" type="submit" disabled={isPending}>
+            {isPending ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size={18} />
+                <span>Please Wait</span>
+              </div>
+            ) : (
+              <span>Save Changes</span>
+            )}
+          </Button>
         </section>
       </form>
     </Form>

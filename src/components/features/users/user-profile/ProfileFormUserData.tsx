@@ -1,7 +1,6 @@
 "use client";
 
-import { type FunctionComponent } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, type FunctionComponent } from "react";
 import {
   Form,
   FormControl,
@@ -11,35 +10,22 @@ import {
   FormMessage,
 } from "@trustify/components/ui/Form";
 import { Label } from "@trustify/components/ui/Label";
-import { UserUpdateDataSchema } from "@trustify/core/schemas/user-schema";
 import { UserData } from "@trustify/core/types/user";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Input } from "@trustify/components/ui/Input";
 import { Button } from "@trustify/components/ui/Button";
+import { useProfileUserdataForm } from "./use-profile-userdata-form";
+import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
-  const form = useForm<z.infer<typeof UserUpdateDataSchema>>({
-    resolver: zodResolver(UserUpdateDataSchema),
-    defaultValues: {
-      role: user.role ?? "client",
-      familyName: user.familyName ?? "",
-      givenName: user.givenName ?? "",
-      middleName: user.middleName ?? "",
-      nickname: user.nickname ?? "",
-      profile: user.profile ?? "",
-      picture: user.picture ?? "",
-      website: user.website ?? "",
-      gender: user.gender ?? "Male",
-      birthdate: user.birthdate ?? undefined,
-      locale: user.locale ?? "",
-      zoneinfo: user.zoneinfo ?? "",
-    },
-  });
+  const { form, isPending, refresh, submit } = useProfileUserdataForm(user);
+
+  useEffect(() => {
+    refresh();
+  }, [user.id]);
 
   return (
     <Form {...form}>
-      <form onSubmit={() => console.log("ok")} className="space-y-10">
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-10">
         <section className="space-y-10">
           <FormField
             control={form.control}
@@ -82,6 +68,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                   />
                 </FormControl>
                 <FormDescription>Middle name(s) of the End-User.</FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -103,6 +90,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                   />
                 </FormControl>
                 <FormDescription>Surname(s) or last name(s) of the End-User.</FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -126,6 +114,31 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                 <FormDescription>
                   Casual name of the End-User that may or may not be the same as the Given Name.{" "}
                 </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="picture"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="picture">Avatar URL</Label>
+                </div>
+                <FormControl>
+                  <Input
+                    id="picture"
+                    placeholder="https://myavatar.me"
+                    className="placeholder:select-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  URL of the End-User's profile picture. This URL MUST refer to an image file.
+                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -150,29 +163,7 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                   URL of the End-User's profile page. The contents of this Web page should be about the
                   End-User.
                 </FormDescription>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="picture"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="picture">Avatar URL</Label>
-                </div>
-                <FormControl>
-                  <Input
-                    id="picture"
-                    placeholder="https://myavatar.me"
-                    className="placeholder:select-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  URL of the End-User's profile picture. This URL MUST refer to an image file.
-                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -194,14 +185,23 @@ export const ProfileFormUserData: FunctionComponent<UserData> = (user) => {
                   />
                 </FormControl>
                 <FormDescription>URL of the End-User's Web page or blog.</FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
         </section>
 
         <section className="flex items-center justify-end gap-2">
-          <Button variant="ghost">Discard</Button>
-          <Button variant="secondary">Save Changes</Button>
+          <Button variant="secondary" type="submit" disabled={isPending}>
+            {isPending ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size={18} />
+                <span>Please Wait</span>
+              </div>
+            ) : (
+              <span>Save Changes</span>
+            )}
+          </Button>
         </section>
       </form>
     </Form>

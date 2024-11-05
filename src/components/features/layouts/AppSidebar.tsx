@@ -153,8 +153,6 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
 
   const pathName = usePathname();
 
-  console.log(pathName);
-
   const router = useRouter();
 
   const { state } = useSidebar();

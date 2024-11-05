@@ -14,16 +14,15 @@ export const UsersDataTable: FunctionComponent = () => {
     queryFn: async () => {
       const result = await $users();
 
-      if (!result.ok) {
-        throw await result.json();
-      }
+      if (!result.ok) throw await result.json();
 
-      return await result.json();
+      const data = await result.json();
+
+      return data;
     },
   });
 
   if (data) {
-     return <DataTable data={data} columns={columns} />;
-    // return <div>Users Table</div>
+    return <DataTable data={data} columns={columns} />;
   }
 };
