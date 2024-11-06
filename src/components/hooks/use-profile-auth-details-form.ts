@@ -26,7 +26,7 @@ const resetToDefault = (
   });
 };
 
-export const useProfileAuthenticationForm = (user: UserData) => {
+export const useProfileAuthDetailsForm = (user: UserData) => {
   const $userAuthUpdate = rpcClient.api.v1.users["authentication-details"][":userid"].$patch;
 
   const queryClient = useQueryClient();

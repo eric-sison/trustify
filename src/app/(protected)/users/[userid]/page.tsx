@@ -1,4 +1,4 @@
-import { UserProfile } from "@trustify/components/features/users/user-profile/UserProfile";
+import { UserProfile } from "@trustify/components/features/admin/user-profile/UserProfile";
 import { PageProps } from "@trustify/types/page-props";
 import { Metadata } from "next";
 

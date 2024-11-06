@@ -14,10 +14,10 @@ import { Label } from "@trustify/components/ui/Label";
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { type FunctionComponent } from "react";
 import { z } from "zod";
-import { useProfileAddressForm } from "@trustify/core/hooks/use-profile-address-form";
+import { useProfileAddressForm } from "@trustify/components/hooks/use-profile-address-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
-export const ProfileFormAddress: FunctionComponent<Partial<z.infer<typeof UserAddressSchema>>> = (
+export const UserProfileAddressForm: FunctionComponent<Partial<z.infer<typeof UserAddressSchema>>> = (
   address,
 ) => {
   const { form, isPending, submit } = useProfileAddressForm(address);

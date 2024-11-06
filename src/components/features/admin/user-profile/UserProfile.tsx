@@ -3,8 +3,8 @@
 import { type FunctionComponent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { rpcClient } from "@trustify/utils/rpc-client";
-import { ProfileHeader } from "./ProfileHeader";
-import { ProfileContent } from "./ProfileContent";
+import { UserProfileHeader } from "./UserProfileHeader";
+import { UserProfileTabContent } from "./UserProfileTabContent";
 import { Button } from "@trustify/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -45,14 +45,14 @@ export const UserProfile: FunctionComponent<{ userid: string }> = ({ userid }) =
           <span>Go back to users</span>
         </Button>
 
-        <ProfileHeader
+        <UserProfileHeader
           defaultColor={data.metadata.defaultColor}
           avatarUrl={data?.picture}
           email={data?.email}
           username={data?.preferredUsername}
         />
 
-        <ProfileContent {...data} />
+        <UserProfileTabContent {...data} />
       </div>
     );
   }

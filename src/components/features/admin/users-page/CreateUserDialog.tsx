@@ -24,13 +24,13 @@ import { Input } from "@trustify/components/ui/Input";
 import { PasswordInput } from "@trustify/components/ui/PasswordInput";
 import { Switch } from "@trustify/components/ui/Switch";
 import { Label } from "@trustify/components/ui/Label";
-import { useUserRegistration } from "@trustify/core/hooks/use-user-registration";
+import { useUserRegistrationForm } from "@trustify/components/hooks/use-user-registration-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
 export const CreateUserDialog: FunctionComponent = () => {
   const [open, setOpen] = useState(false);
 
-  const { form, isPending, submit } = useUserRegistration({ controlledDialogSetter: setOpen });
+  const { form, isPending, submit } = useUserRegistrationForm({ controlledDialogSetter: setOpen });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

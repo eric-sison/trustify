@@ -3,7 +3,7 @@
 import { LoginRequestSchema } from "@trustify/core/schemas/auth-schema";
 import React from "react";
 import { z } from "zod";
-import { useOIDCLogin } from "@trustify/core/hooks/use-oidc-login";
+import { useOIDCLogin } from "@trustify/components/hooks/use-oidc-login";
 import {
   Form,
   FormControl,

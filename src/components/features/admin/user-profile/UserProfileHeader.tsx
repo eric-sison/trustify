@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@trustify/components/ui/Avatar";
 import { DEFAULT_COLORS } from "@trustify/utils/constants";
 import { type FunctionComponent } from "react";
-import { ProfileHeaderDropdown } from "./ProfileHeaderDropdown";
+import { UserProfileHeaderDropdown } from "./UserProfileHeaderDropdown";
 
 type ProfileHeaderProps = {
   avatarUrl: string | null;
@@ -10,7 +10,7 @@ type ProfileHeaderProps = {
   defaultColor: (typeof DEFAULT_COLORS)[number];
 };
 
-export const ProfileHeader: FunctionComponent<ProfileHeaderProps> = ({
+export const UserProfileHeader: FunctionComponent<ProfileHeaderProps> = ({
   avatarUrl,
   email,
   defaultColor,
@@ -34,7 +34,7 @@ export const ProfileHeader: FunctionComponent<ProfileHeaderProps> = ({
       </section>
 
       {/* <Button variant="destructive">Delete User</Button> */}
-      <ProfileHeaderDropdown />
+      <UserProfileHeaderDropdown />
     </div>
   );
 };

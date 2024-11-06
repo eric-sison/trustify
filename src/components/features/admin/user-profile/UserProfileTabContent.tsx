@@ -1,12 +1,12 @@
 import { type FunctionComponent } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@trustify/components/ui/Tabs";
 import { PageContent } from "../../layouts/PageContent";
-import { ProfileFormAuthentication } from "./ProfileFormAuthentication";
-import { ProfileFormUserData } from "./ProfileFormUserData";
+import { UserProfileAuthDetailsForm } from "./UserProfileAuthDetailsForm";
+import { UserProfileUserDataForm } from "./UserProfileUserDataForm";
 import { UserData } from "@trustify/core/types/user";
-import { ProfileFormAddress } from "./ProfileFormAddress";
+import { UserProfileAddressForm } from "./UserProfileAddressForm";
 
-export const ProfileContent: FunctionComponent<UserData> = (user) => {
+export const UserProfileTabContent: FunctionComponent<UserData> = (user) => {
   return (
     <Tabs defaultValue="details" className="space-y-4">
       <TabsList className="full">
@@ -20,19 +20,19 @@ export const ProfileContent: FunctionComponent<UserData> = (user) => {
         <PageContent
           title="Authentication"
           subtitle="This section provides the authentication details of the user."
-          content={<ProfileFormAuthentication {...user} />}
+          content={<UserProfileAuthDetailsForm {...user} />}
         />
 
         <PageContent
           title="User Data"
           subtitle="Each user has a profile containing all user information. It consists of basic data, social identities, and custom data."
-          content={<ProfileFormUserData {...user} />}
+          content={<UserProfileUserDataForm {...user} />}
         />
 
         <PageContent
           title="Address"
           subtitle="This section provides the End-User's preferred postal address."
-          content={<ProfileFormAddress {...user.address} />}
+          content={<UserProfileAddressForm {...user.address} />}
         />
       </TabsContent>
 

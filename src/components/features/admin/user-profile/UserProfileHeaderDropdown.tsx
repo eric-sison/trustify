@@ -9,7 +9,7 @@ import {
 } from "@trustify/components/ui/DropdownMenu";
 import { type FunctionComponent } from "react";
 
-export const ProfileHeaderDropdown: FunctionComponent = () => {
+export const UserProfileHeaderDropdown: FunctionComponent = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

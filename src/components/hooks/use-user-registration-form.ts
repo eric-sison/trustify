@@ -3,10 +3,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { useForm } from "react-hook-form";
-import { UserRegistrationFormSchema } from "../schemas/auth-schema";
+import { UserRegistrationFormSchema } from "../../core/schemas/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InferRequestType, InferResponseType } from "hono";
-import { OidcError } from "../types/oidc-error";
+import { OidcError } from "../../core/types/oidc-error";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Dispatch, SetStateAction } from "react";
@@ -15,7 +15,7 @@ type UserRegistrationHook = {
   controlledDialogSetter: Dispatch<SetStateAction<boolean>>;
 };
 
-export const useUserRegistration = ({ controlledDialogSetter }: UserRegistrationHook) => {
+export const useUserRegistrationForm = ({ controlledDialogSetter }: UserRegistrationHook) => {
   const queryClient = useQueryClient();
 
   const $register = rpcClient.api.v1.users.register.$post;

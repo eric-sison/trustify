@@ -4,10 +4,10 @@ import { ThemeProvider } from "next-themes";
 import localFont from "next/font/local";
 import { Toaster } from "@trustify/components/ui/Toaster";
 import { Toaster as SonnerToaster } from "@trustify/components/ui/Sonner";
-import "@trustify/assets/styles/tailwind.css";
+import "./tailwind.css";
 
 const inter = localFont({
-  src: "../assets/fonts/Inter-VariableFont_opsz,wght.ttf",
+  src: "./Inter-VariableFont_opsz,wght.ttf",
   variable: "--font-inter",
   weight: "100 900",
 });

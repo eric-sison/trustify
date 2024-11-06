@@ -14,11 +14,11 @@ import { Input } from "@trustify/components/ui/Input";
 import { UserData } from "@trustify/core/types/user";
 import { Switch } from "@trustify/components/ui/Switch";
 import { Button } from "@trustify/components/ui/Button";
-import { useProfileAuthenticationForm } from "@trustify/core/hooks/use-profile-authentication-form";
+import { useProfileAuthDetailsForm } from "@trustify/components/hooks/use-profile-auth-details-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
 
-export const ProfileFormAuthentication: FunctionComponent<UserData> = (user) => {
-  const { form, isPending, submit } = useProfileAuthenticationForm(user);
+export const UserProfileAuthDetailsForm: FunctionComponent<UserData> = (user) => {
+  const { form, isPending, submit } = useProfileAuthDetailsForm(user);
 
   return (
     <Form {...form}>
