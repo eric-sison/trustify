@@ -76,6 +76,8 @@ export const cache = async <T>(cacheOptions: CacheServiceOptions<T>): Promise<T>
       // Wait for the specified delay before the next retry
       await new Promise((res) => setTimeout(res, retryDelay));
     }
+
+    console.log({ lockAcquired });
   }
 
   // If all retry attempts are exhausted and the lock is still not acquired

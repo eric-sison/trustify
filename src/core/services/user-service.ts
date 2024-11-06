@@ -54,6 +54,10 @@ export class UserService {
     return await this.userRepository.getUserByPreferredUsername(username);
   }
 
+  public async getUserIdentity(userId: string) {
+    return await this.userRepository.getUserIdentity(userId);
+  }
+
   public async verifyUserId(userId: string) {
     // Get the user by ID
     const user = await this.userRepository.getUserById(userId);

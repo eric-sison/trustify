@@ -5,8 +5,19 @@ import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 
 export const requireAuth = createMiddleware(async (c, next) => {
-  // get session_id from cookie
-  const sessionId = getCookie(c, lucia.sessionCookieName) ?? null;
+  const sessionId =
+    /**
+     * Get session_id from browser cookie for client-side requests
+     */
+    getCookie(c, lucia.sessionCookieName) ??
+    /**
+     * Get session_id from cookie headers for server-side requests
+     */
+    c.req.header("Cookie")?.match(new RegExp(`(?:^|;\\s*)${lucia.sessionCookieName}=([^;]*)`))?.[1] ??
+    /**
+     * If session_id is not found in cookie header nor the browser, return null value
+     */
+    null;
 
   if (!sessionId) {
     // set context variable user to null
@@ -48,10 +59,6 @@ export const requireAuth = createMiddleware(async (c, next) => {
       }
     },
   });
-
-  // console.log({ data });
-
-  //const data = await lucia.validateSession(sessionId);
 
   if (data.session && data.session.fresh) {
     c.header("Set-Cookie", lucia.createSessionCookie(data.session.id).serialize(), {

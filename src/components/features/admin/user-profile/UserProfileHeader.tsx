@@ -2,33 +2,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@trustify/components/ui/Ava
 import { DEFAULT_COLORS } from "@trustify/utils/constants";
 import { type FunctionComponent } from "react";
 import { UserProfileHeaderDropdown } from "./UserProfileHeaderDropdown";
+import { UserData } from "@trustify/core/types/user";
 
-type ProfileHeaderProps = {
-  avatarUrl: string | null;
-  email: string;
-  username: string;
-  defaultColor: (typeof DEFAULT_COLORS)[number];
-};
+// type ProfileHeaderProps = {
+//   avatarUrl: string | null;
+//   email: string;
+//   username: string;
+//   defaultColor: (typeof DEFAULT_COLORS)[number];
+// };
 
-export const UserProfileHeader: FunctionComponent<ProfileHeaderProps> = ({
-  avatarUrl,
-  email,
-  defaultColor,
-  username,
-}) => {
+export const UserProfileHeader: FunctionComponent<{ user: UserData }> = ({ user }) => {
   return (
     <div className="flex items-center justify-between rounded-xl border bg-muted/80 px-7 py-5 dark:border-muted/50 dark:bg-muted/20">
       <section className="flex items-center gap-4">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={avatarUrl ?? undefined} alt={username} />
-          <AvatarFallback className="text-3xl uppercase" defaultColor={defaultColor}>
-            {email.charAt(0)}
+          <AvatarImage src={user.picture ?? undefined} alt={user.preferredUsername} />
+          <AvatarFallback className="text-3xl uppercase" defaultColor={user.metadata?.defaultColor}>
+            {user.email.charAt(0)}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="scroll-m-20 text-lg font-semibold tracking-tight">{email}</h4>
+          <h4 className="scroll-m-20 text-lg font-semibold tracking-tight">{user.email}</h4>
           <div>
-            <p className="text-wide text-base font-semibold text-muted-foreground">{username}</p>
+            <p className="text-wide text-base font-semibold text-muted-foreground">
+              {user.preferredUsername}
+            </p>
           </div>
         </div>
       </section>

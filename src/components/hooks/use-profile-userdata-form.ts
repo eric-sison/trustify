@@ -2,7 +2,7 @@
 
 import { UpdateUserDataFormSchema } from "@trustify/core/schemas/user-schema";
 import { UserData } from "@trustify/core/types/user";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { rpcClient } from "@trustify/utils/rpc-client";
@@ -10,22 +10,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono/client";
 import { OidcError } from "@trustify/core/types/oidc-error";
 import { toast } from "sonner";
-import { useEffect } from "react";
-
-const resetToDefault = (form: UseFormReturn<z.infer<typeof UpdateUserDataFormSchema>>, user: UserData) => {
-  form.reset({
-    familyName: user.familyName ?? "",
-    givenName: user.givenName ?? "",
-    middleName: user.middleName ?? "",
-    nickname: user.nickname ?? "",
-    profile: user.profile ?? "",
-    picture: user.picture ?? "",
-    website: user.website ?? "",
-    gender: user.gender ?? "Male",
-    locale: user.locale ?? "",
-    zoneinfo: user.zoneinfo ?? "",
-  });
-};
 
 export const useProfileUserdataForm = (user: UserData) => {
   const $userDataUpdate = rpcClient.api.v1.users["user-data"][":userid"].$patch;
@@ -48,10 +32,6 @@ export const useProfileUserdataForm = (user: UserData) => {
       zoneinfo: user.zoneinfo ?? "",
     },
   });
-
-  useEffect(() => {
-    resetToDefault(form, user);
-  }, [form, user]);
 
   const { data, isPending, mutate } = useMutation<
     InferResponseType<typeof $userDataUpdate>,

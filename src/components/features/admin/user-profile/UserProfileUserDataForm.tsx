@@ -1,6 +1,6 @@
 "use client";
 
-import { type FunctionComponent } from "react";
+import { useContext, type FunctionComponent } from "react";
 import {
   Form,
   FormControl,
@@ -15,8 +15,11 @@ import { Input } from "@trustify/components/ui/Input";
 import { Button } from "@trustify/components/ui/Button";
 import { useProfileUserdataForm } from "@trustify/components/hooks/use-profile-userdata-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
+import { UserDataContext } from "./UserProfileTabContent";
 
-export const UserProfileUserDataForm: FunctionComponent<UserData> = (user) => {
+export const UserProfileUserDataForm: FunctionComponent = () => {
+  const user = useContext(UserDataContext);
+
   const { form, isPending, submit } = useProfileUserdataForm(user);
 
   return (

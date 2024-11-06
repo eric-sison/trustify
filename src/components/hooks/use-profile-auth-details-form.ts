@@ -8,23 +8,8 @@ import { UserData } from "@trustify/core/types/user";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { InferRequestType, InferResponseType } from "hono";
 import { toast } from "sonner";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useEffect } from "react";
-
-const resetToDefault = (
-  form: UseFormReturn<z.infer<typeof UpdateAuthenticationFormSchema>>,
-  user: UserData,
-) => {
-  form.reset({
-    email: user.email,
-    phoneNumber: user.phoneNumber,
-    emailVerified: user.emailVerified,
-    preferredUsername: user.preferredUsername,
-    suspended: user.suspended,
-    phoneNumberVerified: user.phoneNumberVerified,
-  });
-};
 
 export const useProfileAuthDetailsForm = (user: UserData) => {
   const $userAuthUpdate = rpcClient.api.v1.users["authentication-details"][":userid"].$patch;
@@ -42,10 +27,6 @@ export const useProfileAuthDetailsForm = (user: UserData) => {
       phoneNumberVerified: user.phoneNumberVerified,
     },
   });
-
-  useEffect(() => {
-    resetToDefault(form, user);
-  }, [form, user]);
 
   const { data, isPending, mutate } = useMutation<
     InferResponseType<typeof $userAuthUpdate>,

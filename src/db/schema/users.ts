@@ -1,14 +1,13 @@
 import { UserAddressSchema } from "@trustify/core/schemas/user-schema";
 import { UserMetaData } from "@trustify/types/user-metadata";
 import { getRandomColor } from "@trustify/utils/get-random-color";
-import { ID_LENGTH, USER_GENDER, USER_ROLES } from "@trustify/utils/constants";
+import { ID_LENGTH, USER_GENDER } from "@trustify/utils/constants";
 import { char, pgTable, varchar, boolean, pgEnum, timestamp, jsonb, date } from "drizzle-orm/pg-core";
 import { generateId } from "lucia";
 import { z } from "zod";
 import { roles } from "./roles";
 
 export const userGenderEnum = pgEnum("user_gender_enum", USER_GENDER);
-export const userRolesEnum = pgEnum("user_roles_enum", USER_ROLES);
 
 export const users = pgTable("users", {
   id: char("user_id", { length: ID_LENGTH })
@@ -17,6 +16,7 @@ export const users = pgTable("users", {
   role: char("role_id_fk", { length: ID_LENGTH }).references(() => roles.id),
   email: varchar("email").unique().notNull(),
   password: varchar("password").notNull(),
+  name: varchar("full_name"),
   givenName: varchar("given_name"),
   middleName: varchar("middle_name"),
   familyName: varchar("last_name"),

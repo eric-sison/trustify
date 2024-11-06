@@ -33,6 +33,7 @@ export type UserSummary = {
   givenName: string | null;
   middleName: string | null;
   familyName: string | null;
+  name: string | null;
   preferredUsername: string;
   phoneNumber: string;
   phoneNumberVerified: boolean;
@@ -40,4 +41,14 @@ export type UserSummary = {
   emailVerified: boolean;
   suspended: boolean;
   metadata: { defaultColor: (typeof DEFAULT_COLORS)[number] };
+};
+
+export type UserIdentity = {
+  id: string;
+  name: string | null;
+  givenName: string | null;
+  middleName: string | null;
+  familyName: string | null;
+  prefferedUsername: string | null;
+  email: string | null;
 };

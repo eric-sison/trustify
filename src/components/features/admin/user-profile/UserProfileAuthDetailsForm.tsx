@@ -1,6 +1,6 @@
 "use client";
 
-import { type FunctionComponent } from "react";
+import { useContext, type FunctionComponent } from "react";
 import {
   Form,
   FormControl,
@@ -11,13 +11,15 @@ import {
 } from "@trustify/components/ui/Form";
 import { Label } from "@trustify/components/ui/Label";
 import { Input } from "@trustify/components/ui/Input";
-import { UserData } from "@trustify/core/types/user";
 import { Switch } from "@trustify/components/ui/Switch";
 import { Button } from "@trustify/components/ui/Button";
 import { useProfileAuthDetailsForm } from "@trustify/components/hooks/use-profile-auth-details-form";
 import { LoadingSpinner } from "@trustify/components/ui/LoadingSpinner";
+import { UserDataContext } from "./UserProfileTabContent";
 
-export const UserProfileAuthDetailsForm: FunctionComponent<UserData> = (user) => {
+export const UserProfileAuthDetailsForm: FunctionComponent = () => {
+  const user = useContext(UserDataContext);
+
   const { form, isPending, submit } = useProfileAuthDetailsForm(user);
 
   return (

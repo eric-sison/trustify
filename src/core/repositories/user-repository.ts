@@ -66,6 +66,8 @@ export class UserRepository {
           id: users.id,
           picture: users.picture,
           email: users.email,
+          name: users.name,
+          fullName: users.name,
           givenName: users.givenName,
           middleName: users.middleName,
           familyName: users.familyName,
@@ -187,16 +189,50 @@ export class UserRepository {
     }
   }
 
-  async updateUser(userId: string, data: Partial<typeof users.$inferInsert>) {
+  async getUserIdentity(userId: string) {
     try {
       const ps = db
+        .select({
+          id: users.id,
+          name: users.name,
+          givenName: users.givenName,
+          middleName: users.middleName,
+          familyName: users.familyName,
+          prefferedUsername: users.preferredUsername,
+          email: users.email,
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .prepare("get_user_identity_by_id");
+
+      const result = await ps.execute();
+
+      return result[0];
+    } catch (error) {
+      throw new OidcError({
+        error: "failed_query",
+        message: "Failed to execute query.",
+        status: 500,
+
+        // @ts-expect-error error is of type unknown
+        stack: error.stack,
+      });
+    }
+  }
+
+  async updateUser(userId: string, data: Partial<typeof users.$inferInsert>) {
+    try {
+      const fullName = [data.givenName, data.middleName, data.familyName].filter((name) => name).join(" ");
+
+      const ps = db
         .update(users)
-        .set({ ...data, updatedAt: new Date() })
+        .set({ ...data, name: fullName, updatedAt: new Date() })
         .where(eq(users.id, userId))
         .returning({
           id: users.id,
           role: users.role,
           email: users.email,
+          name: users.name,
           givenName: users.givenName,
           middleName: users.middleName,
           familyName: users.familyName,

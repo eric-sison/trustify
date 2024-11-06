@@ -221,7 +221,7 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
                   return (
                     <SidebarMenuItem key={item.title}>
                       {state === "collapsed" ? (
-                        <TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <SidebarMenuButton
@@ -259,7 +259,7 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
                   return (
                     <SidebarMenuItem key={item.title}>
                       {state === "collapsed" ? (
-                        <TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <SidebarMenuButton

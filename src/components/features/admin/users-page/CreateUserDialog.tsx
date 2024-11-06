@@ -119,7 +119,7 @@ export const CreateUserDialog: FunctionComponent = () => {
                     <FormControl>
                       <Input
                         id="preferredUsername"
-                        placeholder="@preferred_username"
+                        placeholder="@username"
                         className="placeholder:select-none"
                         {...field}
                       />
@@ -150,7 +150,7 @@ export const CreateUserDialog: FunctionComponent = () => {
             </section>
 
             <section className="mt-10 flex items-center justify-end gap-2">
-              <Button disabled={isPending} className="w-full space-x-2" type="submit">
+              <Button disabled={isPending} variant="secondary" className="w-full space-x-2" type="submit">
                 {isPending ? (
                   <div className="flex items-center gap-2">
                     <LoadingSpinner size={18} />

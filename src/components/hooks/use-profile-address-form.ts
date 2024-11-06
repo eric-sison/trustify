@@ -7,24 +7,9 @@ import { OidcError } from "@trustify/core/types/oidc-error";
 import { rpcClient } from "@trustify/utils/rpc-client";
 import { InferRequestType, InferResponseType } from "hono/client";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-const resetToDefault = (
-  form: UseFormReturn<z.infer<typeof UserAddressSchema>>,
-  address: Partial<z.infer<typeof UserAddressSchema>>,
-) => {
-  form.reset({
-    country: address.country ?? "",
-    formatted: address.formatted ?? "",
-    locality: address.locality ?? "",
-    postal_code: address.postal_code ?? "",
-    region: address.region ?? "",
-    street_address: address.street_address ?? "",
-  });
-};
 
 export const useProfileAddressForm = (address: Partial<z.infer<typeof UserAddressSchema>>) => {
   const $userAddressUpdate = rpcClient.api.v1.users["user-address"][":userid"].$patch;
@@ -44,10 +29,6 @@ export const useProfileAddressForm = (address: Partial<z.infer<typeof UserAddres
       street_address: address.street_address ?? "",
     },
   });
-
-  useEffect(() => {
-    resetToDefault(form, address);
-  }, [form, address]);
 
   const { data, isPending, mutate } = useMutation<
     InferResponseType<typeof $userAddressUpdate>,

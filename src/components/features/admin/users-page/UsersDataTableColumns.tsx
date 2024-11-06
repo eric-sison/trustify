@@ -49,14 +49,11 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
 
   {
     accessorKey: "preferredUsername",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Username" />,
     cell: ({ row }) => {
       return (
         <div className="max-w-56">
-          <h3 className="truncate">
-            {row.original.givenName} {row.original.middleName} {row.original.familyName}
-          </h3>
-          <p className="text-muted-foreground">{row.original.preferredUsername}</p>
+          <p className="truncate text-muted-foreground">{row.original.preferredUsername}</p>
         </div>
       );
     },
@@ -64,11 +61,27 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
   },
 
   {
+    accessorKey: "name",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+    cell: ({ row }) => {
+      return (
+        <div className="max-w-56">
+          {row.original.name ? (
+            <p className="truncate">{row.original.name}</p>
+          ) : (
+            <p className="text-muted-foreground">No data</p>
+          )}
+        </div>
+      );
+    },
+  },
+
+  {
     accessorKey: "phoneNumber",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Contact Number" />,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <p>{row.original.phoneNumber}</p>
           {!row.original.phoneNumberVerified && (
             <TooltipProvider delayDuration={100}>
@@ -77,7 +90,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
                   <Info className="h-4 w-4 text-amber-500 dark:text-amber-600" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <span>Phone number is not yet verified!</span>
+                  <span className="tracking-wide">Phone number is not yet verified</span>
                   <Button
                     variant="link"
                     onClick={() => console.log(`send verification code to ${row.original.phoneNumber}`)}
@@ -100,7 +113,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <p>{row.original.email}</p>
           {!row.original.emailVerified && (
             <TooltipProvider delayDuration={100}>
@@ -109,7 +122,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
                   <Info className="h-4 w-4 text-amber-500 dark:text-amber-600" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <span>Email address is not yet verified!</span>
+                  <span className="tracking-wide">Email is not yet verified</span>
                   <Button
                     variant="link"
                     onClick={() => console.log(`send verification code to ${row.original.email}`)}

@@ -30,6 +30,16 @@ export const usersHandler = new Hono<HonoAppBindings>()
     return c.json(user);
   })
 
+  .get("/identity/:userid", zValidator("param", UserIdParamSchema), requireAuth, async (c) => {
+    const { userid } = c.req.valid("param");
+
+    const userService = new UserService();
+
+    const identity = await userService.getUserIdentity(userid);
+
+    return c.json(identity);
+  })
+
   .patch(
     "authentication-details/:userid",
     zValidator("param", UserIdParamSchema),
