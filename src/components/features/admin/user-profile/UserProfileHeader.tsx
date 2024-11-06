@@ -1,15 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@trustify/components/ui/Avatar";
-import { DEFAULT_COLORS } from "@trustify/utils/constants";
 import { type FunctionComponent } from "react";
 import { UserProfileHeaderDropdown } from "./UserProfileHeaderDropdown";
 import { UserData } from "@trustify/core/types/user";
-
-// type ProfileHeaderProps = {
-//   avatarUrl: string | null;
-//   email: string;
-//   username: string;
-//   defaultColor: (typeof DEFAULT_COLORS)[number];
-// };
 
 export const UserProfileHeader: FunctionComponent<{ user: UserData }> = ({ user }) => {
   return (

@@ -24,6 +24,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
       );
     },
     enableSorting: false,
+    enableColumnFilter: false,
   },
 
   {
@@ -106,6 +107,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
       );
     },
     enableSorting: false,
+    enableColumnFilter: false,
   },
 
   {
@@ -140,7 +142,8 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
   },
 
   {
-    accessorKey: "emailVerified",
+    accessorKey: "suspended",
+    accessorFn: (column, as) => (column.suspended ? "Suspended" : "Active"),
     header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
     cell: ({ row }) => {
       return (

@@ -1,14 +1,14 @@
+import { UserProfileHeader } from "@trustify/components/features/admin/user-profile/UserProfileHeader";
+import { UserProfileTabContent } from "@trustify/components/features/admin/user-profile/UserProfileTabContent";
 import { PageProps } from "@trustify/types/page-props";
-import { Metadata } from "next";
 import { Environment } from "@trustify/config/environment";
 import { cookies } from "next/headers";
 import { UserData, UserIdentity } from "@trustify/core/types/user";
 import { notFound } from "next/navigation";
 import { UserIdParamSchema } from "@trustify/core/schemas/user-schema";
 import { ArrowLeft } from "lucide-react";
-import { UserProfileHeader } from "@trustify/components/features/admin/user-profile/UserProfileHeader";
-import { UserProfileTabContent } from "@trustify/components/features/admin/user-profile/UserProfileTabContent";
 import { lucia } from "@trustify/config/lucia";
+import { Metadata } from "next";
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
 
@@ -32,9 +32,9 @@ export async function generateMetadata(props: PageProps<{ userid: string }>): Pr
       });
 
       return {
-        title: result.data.name ?? result.data.prefferedUsername,
+        title: result.data.name ? result.data.name : result.data.prefferedUsername,
       };
-    } catch (error) {
+    } catch (_) {
       notFound();
     }
   }

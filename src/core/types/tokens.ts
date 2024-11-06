@@ -26,5 +26,5 @@ export type GenerateTokenOptions = {
 
 export type UserClaims = Omit<
   typeof users.$inferSelect,
-  "createdAt" | "role" | "password" | "suspended" | "metaData" | "customData"
+  "createdAt" | "role" | "password" | "suspended" | "metaData" | "customData" | "name"
 >;

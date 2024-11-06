@@ -10,7 +10,6 @@ import {
   FormMessage,
 } from "@trustify/components/ui/Form";
 import { Label } from "@trustify/components/ui/Label";
-import { UserData } from "@trustify/core/types/user";
 import { Input } from "@trustify/components/ui/Input";
 import { Button } from "@trustify/components/ui/Button";
 import { useProfileUserdataForm } from "@trustify/components/hooks/use-profile-userdata-form";

@@ -9,7 +9,7 @@ import { columns } from "./UsersDataTableColumns";
 export const UsersDataTable: FunctionComponent = () => {
   const $users = rpcClient.api.v1.users.$get;
 
-  const { data } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: ["get_all_users"],
     queryFn: async () => {
       const result = await $users();
@@ -21,6 +21,10 @@ export const UsersDataTable: FunctionComponent = () => {
       return data;
     },
   });
+
+  if (isPending) {
+    return <DataTable data={[]} columns={[]} loading />;
+  }
 
   if (data) {
     return <DataTable data={data} columns={columns} />;

@@ -48,6 +48,7 @@ export const requireAuth = createMiddleware(async (c, next) => {
     key: `${lucia.sessionCookieName}_${sessionId}`,
     ttl: 3600 * 24,
     debug: false,
+    retryDelay: 100,
     onCacheMiss: async () => {
       try {
         return await lucia.validateSession(sessionId);

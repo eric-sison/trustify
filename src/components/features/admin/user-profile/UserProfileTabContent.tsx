@@ -37,7 +37,7 @@ export const UserProfileTabContent: FunctionComponent<{ user: UserData }> = ({ u
           <PageContent
             title="Address"
             subtitle="This section provides the End-User's preferred postal address."
-            content={<UserProfileAddressForm {...user.address} />}
+            content={<UserProfileAddressForm />}
           />
         </TabsContent>
 

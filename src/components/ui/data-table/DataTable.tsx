@@ -19,6 +19,7 @@ import { DataTablePagination } from "./DataTablePagination";
 import { Input } from "../Input";
 import { DataTableToolbar } from "./DataTableToolbar";
 import { createContext, useState } from "react";
+import { LoadingSpinner } from "../LoadingSpinner";
 
 type DataTableProps<T> = {
   columns: Array<ColumnDef<T, unknown>>;
@@ -26,6 +27,7 @@ type DataTableProps<T> = {
   enableColumnVisibilityToggle?: boolean;
   enableGlobalFilter?: boolean;
   enablePagination?: boolean;
+  loading?: boolean;
 };
 
 type ColumnVisibilityToggleContextState = {
@@ -42,6 +44,7 @@ export function DataTable<T>({
   enableColumnVisibilityToggle = true,
   enableGlobalFilter = true,
   enablePagination = true,
+  loading = false,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -109,21 +112,33 @@ export function DataTable<T>({
                 </TableRow>
               ))}
             </TableHeader>
+
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="max-w-[30rem] truncate">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
+              {!loading ? (
+                table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="max-w-[30rem] truncate">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No results.
+                    </TableCell>
                   </TableRow>
-                ))
+                )
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                  <TableCell
+                    colSpan={columns.length}
+                    className="flex h-24 w-full items-center justify-center gap-2"
+                  >
+                    <LoadingSpinner /> <span>Loading data...</span>
                   </TableCell>
                 </TableRow>
               )}
