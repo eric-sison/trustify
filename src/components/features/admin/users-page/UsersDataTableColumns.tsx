@@ -143,7 +143,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
 
   {
     accessorKey: "suspended",
-    accessorFn: (column, as) => (column.suspended ? "Suspended" : "Active"),
+    accessorFn: (column) => (column.suspended ? "Suspended" : "Active"),
     header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
     cell: ({ row }) => {
       return (

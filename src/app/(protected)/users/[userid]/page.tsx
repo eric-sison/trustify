@@ -34,6 +34,8 @@ export async function generateMetadata(props: PageProps<{ userid: string }>): Pr
       return {
         title: result.data.name ? result.data.name : result.data.prefferedUsername,
       };
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       notFound();
     }
