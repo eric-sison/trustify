@@ -5,6 +5,10 @@ import { verifyHash } from "@trustify/utils/hash-fns";
 export class ClientService {
   private readonly clientRepository = new ClientRepository();
 
+  public async getAllClients() {
+    return await this.clientRepository.getAllClients();
+  }
+
   public async getClientById(clientId: string) {
     // Get the client from the database by the client_id from loginRequest
     const client = await this.clientRepository.getClientById(clientId);

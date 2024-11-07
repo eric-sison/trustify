@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@trustify/components/ui/Avatar";
 import { Badge } from "@trustify/components/ui/Badge";
 import { DataTableColumnHeader } from "@trustify/components/ui/data-table/DataTableColumnHeader";
-import { DataTableRowActions } from "./UsersDataTableRowActions";
+import { UsersDataTableRowActions } from "./UsersDataTableRowActions";
 import { UserSummary } from "@trustify/core/types/user";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@trustify/components/ui/Tooltip";
@@ -38,8 +38,7 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
             className="font-semibold uppercase"
             defaultColor={row.original.metadata?.defaultColor}
           >
-            {row.original.email.charAt(0)}
-            {row.original.email.charAt(1)}
+            {row.original.email ? `${row.original.email.charAt(0)}${row.original.email.charAt(1)}` : ""}
           </AvatarFallback>
         </Avatar>
       );
@@ -163,6 +162,6 @@ export const columns: ColumnDef<UserSummary, unknown>[] = [
 
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => <UsersDataTableRowActions row={row} />,
   },
 ];

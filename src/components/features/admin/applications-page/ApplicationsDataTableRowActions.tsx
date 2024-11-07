@@ -10,14 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@trustify/components/ui/DropdownMenu";
-import { UserSummary } from "@trustify/core/types/user";
+import { ClientSummary } from "@trustify/core/types/clients";
 import { useRouter } from "next/navigation";
 
-interface UsersDataTableRowActionsProps<TData> {
+interface ApplicationsDataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
 
-export function UsersDataTableRowActions({ row }: UsersDataTableRowActionsProps<UserSummary>) {
+export function ApplicationsDataTableRowActions({
+  row,
+}: ApplicationsDataTableRowActionsProps<ClientSummary>) {
   const router = useRouter();
 
   return (
@@ -29,18 +31,11 @@ export function UsersDataTableRowActions({ row }: UsersDataTableRowActionsProps<
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem onClick={() => router.push(`/users/${row.original.id}`)}>
-          View Profile
+        <DropdownMenuItem onClick={() => router.push(`/applications/${row.original.id}`)}>
+          View App
         </DropdownMenuItem>
+
         <DropdownMenuSeparator />
-
-        {!row.original.emailVerified && (
-          <>
-            <DropdownMenuItem>Send Verification</DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
-
         <DropdownMenuItem onClick={() => console.log(row.original)}>Delete</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

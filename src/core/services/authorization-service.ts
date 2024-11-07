@@ -22,6 +22,8 @@ export class AuthorizationService {
   constructor(private readonly loginRequest: z.infer<typeof LoginRequestSchema>) {}
 
   public async verifyAuthorizationRequest(client: typeof clients.$inferInsert) {
+    this.verifyClientStatus(client.isActive!);
+
     // Check if scopes are valid
     this.verifyScopes(client.scopes!);
 
@@ -189,6 +191,16 @@ export class AuthorizationService {
 
   public async hybridFlowCodeIdTokenToken() {
     return "";
+  }
+
+  private verifyClientStatus(isActive: boolean) {
+    if (!isActive) {
+      throw new OidcError({
+        error: "inactive_client",
+        message: "The client is currently inactive.",
+        status: 400,
+      });
+    }
   }
 
   private verifyScopes(clientScopes: string[]) {

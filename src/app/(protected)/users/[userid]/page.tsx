@@ -2,7 +2,6 @@ import { UserProfileHeader } from "@trustify/components/features/admin/user-prof
 import { UserProfileTabContent } from "@trustify/components/features/admin/user-profile/UserProfileTabContent";
 import { PageProps } from "@trustify/types/page-props";
 import { Environment } from "@trustify/config/environment";
-import { cookies } from "next/headers";
 import { UserData, UserIdentity } from "@trustify/core/types/user";
 import { notFound } from "next/navigation";
 import { UserIdParamSchema } from "@trustify/core/schemas/user-schema";
@@ -11,23 +10,20 @@ import { lucia } from "@trustify/config/lucia";
 import { Metadata } from "next";
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
+import { validateSession } from "@trustify/utils/validate-session";
 
 export async function generateMetadata(props: PageProps<{ userid: string }>): Promise<Metadata> {
-  const cookie = await cookies();
-
-  const sid = cookie.get(lucia.sessionCookieName)?.value ?? null;
+  const sid = await validateSession();
 
   const host = Environment.getPublicConfig().adminHost;
 
   const identifier = await props.params;
 
-  if (identifier) {
+  if (sid && identifier) {
     try {
       const result = await axios.get<UserIdentity>(`${host}/api/v1/users/identity/${identifier?.userid}`, {
         headers: {
-          Cookie: cookie.get(lucia.sessionCookieName)?.value
-            ? `${lucia.sessionCookieName}=${sid}`
-            : undefined,
+          Cookie: sid.session.id ? `${lucia.sessionCookieName}=${sid.session.id}` : undefined,
         },
       });
 
@@ -44,20 +40,16 @@ export async function generateMetadata(props: PageProps<{ userid: string }>): Pr
   notFound();
 }
 
-const getUserData = async (id: string) => {
-  const cookie = await cookies();
-
-  const sid = cookie.get(lucia.sessionCookieName)?.value ?? null;
+const getUserData = async (userId: string) => {
+  const sid = await validateSession();
 
   const host = Environment.getPublicConfig().adminHost;
 
-  if (cookie) {
+  if (sid) {
     try {
-      const result = await axios.get(`${host}/api/v1/users/${id}`, {
+      const result = await axios.get(`${host}/api/v1/users/${userId}`, {
         headers: {
-          Cookie: cookie.get(lucia.sessionCookieName)?.value
-            ? `${lucia.sessionCookieName}=${sid}`
-            : undefined,
+          Cookie: sid.session.id ? `${lucia.sessionCookieName}=${sid.session.id}` : undefined,
         },
       });
 

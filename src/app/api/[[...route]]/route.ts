@@ -15,6 +15,7 @@ import { userInfoHandler } from "@trustify/core/handlers/userinfo";
 import { cors } from "hono/cors";
 import { Environment } from "@trustify/config/environment";
 import { usersHandler } from "@trustify/core/handlers/users";
+import { clientsHandler } from "@trustify/core/handlers/clients";
 
 export type HonoAppBindings = {
   Variables: {
@@ -52,7 +53,8 @@ const routes = app
   .route("/v1/oidc", authenticationHandler)
   .route("/v1/token", tokenHandler)
   .route("/v1/keystore", keystoreHandler)
-  .route("/v1/users", usersHandler);
+  .route("/v1/users", usersHandler)
+  .route("/v1/clients", clientsHandler);
 
 export const GET = handle(app);
 export const POST = handle(app);
