@@ -5,7 +5,11 @@ import { type NextRequest, NextResponse } from "next/server";
 export default async function middleware(request: NextRequest) {
   const cookie = await cookies();
 
-  const sid = cookie.get(lucia.sessionCookieName)?.value;
+  const sid = cookie.get(lucia.sessionCookieName);
+
+  if (sid && request.nextUrl.pathname === "/admin/login") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
 
   if (!sid && request.nextUrl.pathname !== "/admin/login") {
     return NextResponse.redirect(new URL("/admin/login", request.url));

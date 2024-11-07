@@ -361,7 +361,7 @@ export const AppSidebar: FunctionComponent<PropsWithChildren> = ({ children }) =
       <SidebarInset className="overflow-y-auto">
         <AppTopbar />
         <Separator />
-        <div className="h-full px-20 py-10 sm:px-7 md:px-10 xl:px-20">{children}</div>
+        <div className="h-full px-20 py-10 sm:px-7 md:px-10 lg:px-14 xl:px-20">{children}</div>
       </SidebarInset>
     </>
   );

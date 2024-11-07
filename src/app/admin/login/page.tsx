@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-
 import { Button } from "@trustify/components/ui/Button";
 import { Input } from "@trustify/components/ui/Input";
 import { Label } from "@trustify/components/ui/Label";
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
   title: "Login",
 };
 
-export default function AdminLogin() {
+export default async function AdminLogin() {
   return (
     <div className="h-full w-full lg:grid lg:grid-cols-2">
       <div className="flex items-center justify-center py-12">
