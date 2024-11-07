@@ -50,7 +50,7 @@ export class KeyStoreService {
     }
   }
 
-  public async createKey() {
+  public async createKey(size: number) {
     try {
       // Get key with status, "current"
       const key = await this.keyStoreRepository.getKeyByStatus("current");
@@ -71,7 +71,7 @@ export class KeyStoreService {
       );
 
       // Generate a key-pair to store in the database
-      const keyPair = this.generateRSAKeyPair(2048);
+      const keyPair = this.generateRSAKeyPair(size);
 
       // Encrypt the private key from the key-pair to safely store it in the database
       const encryptedPrivateKey = this.encryptKey(keyPair.privateKey, privateKeySecret);

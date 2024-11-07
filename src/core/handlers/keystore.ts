@@ -6,7 +6,7 @@ import { Hono } from "hono";
 export const keystoreHandler = new Hono<HonoAppBindings>().post("/rotate-keys", async (c) => {
   const keyStoreService = new KeyStoreService();
 
-  const key = await keyStoreService.createKey();
+  const key = await keyStoreService.createKey(2048);
 
   return c.json(key);
 });
