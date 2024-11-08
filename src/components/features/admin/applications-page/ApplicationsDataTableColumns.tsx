@@ -23,7 +23,7 @@ export const clientsDataTableColumns: ColumnDef<ClientSummary, unknown>[] = [
 
   {
     accessorKey: "logo",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Application Logo" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="App Logo" />,
     cell: ({ row }) => (
       <div className="max-w-64">
         {row.original.logo ? (
